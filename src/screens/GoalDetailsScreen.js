@@ -1,11 +1,12 @@
 import { View, Text } from "react-native";
-import { NavBar } from "../components/layout/Navbar";
+import { ScreenContainer } from "../components/layout/ScreenContainer";
 
 export function GoalDetailsScreen() {
   return (
-    <View>
-      <Text>GoalDetailsScreen heje hejehe j</Text>
-      <NavBar/>
-    </View>
+    <ScreenContainer>
+      <View>
+        <Text>GoalDetailsScreen heje hejehe j</Text>
+      </View>
+    </ScreenContainer>
   );
 }

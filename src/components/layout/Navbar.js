@@ -1,20 +1,19 @@
-import { useNavigation } from "@react-navigation/native";
-import { View, Pressable, Text } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
+import { HomeScreen } from "../../screens/HomeScreen";
+import { HistoryScreen } from "../../screens/HistoryScreen";
+import { GoalOverviewScreen } from "../../screens/GoalOverviewScreen";
+
+const Tab = createBottomTabNavigator();
+
+
+//MainTabs — this is your navbar now. It defines the three bottom tabs and is what replaced your old NavBar component.
 export function NavBar() {
-  const navigation = useNavigation();
-
   return (
-    <View>
-      <Pressable onPress={() => navigation.navigate("HomePage")}>
-        <Text>Home</Text>
-      </Pressable>
-      <Pressable onPress={() => navigation.navigate("HistoryPage")}>
-        <Text>History</Text>
-      </Pressable>
-      <Pressable onPress={() => navigation.navigate("GoalOverviewPage")}>
-        <Text>Goals</Text>
-      </Pressable>
-    </View>
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="HomePage" component={HomeScreen} />
+      <Tab.Screen name="HistoryPage" component={HistoryScreen} />
+      <Tab.Screen name="GoalOverviewPage" component={GoalOverviewScreen} />
+    </Tab.Navigator>
   );
 }

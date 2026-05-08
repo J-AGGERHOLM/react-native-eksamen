@@ -1,11 +1,12 @@
 import { View, Text } from "react-native";
-import { NavBar } from "../components/layout/Navbar";
+import { ScreenContainer } from "../components/layout/ScreenContainer";
 
 export function HistoryScreen() {
   return (
-    <View>
-      <Text>HistoryScreen heje hejehe j</Text>
-      <NavBar/>
-    </View>
+    <ScreenContainer>
+      <View>
+        <Text>HistoryScreen heje hejehe j</Text>
+      </View>
+    </ScreenContainer>
   );
 }
