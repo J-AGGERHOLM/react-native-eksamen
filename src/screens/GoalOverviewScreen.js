@@ -5,7 +5,7 @@ export function GoalOverviewScreen() {
   return (
     <View>
       <Text>GoalOverviewScreen heje hejehe j</Text>
-      <NavBar></NavBar>
+      <NavBar/>
     </View>
   );
 }

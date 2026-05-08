@@ -5,7 +5,7 @@ export function HistoryScreen() {
   return (
     <View>
       <Text>HistoryScreen heje hejehe j</Text>
-      <NavBar></NavBar>
+      <NavBar/>
     </View>
   );
 }

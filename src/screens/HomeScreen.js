@@ -5,7 +5,7 @@ export function HomeScreen() {
   return (
     <View>
       <Text>HomeScreen heje hejehe j</Text>
-      <NavBar></NavBar>
+      <NavBar/>
     </View>
   );
 }
