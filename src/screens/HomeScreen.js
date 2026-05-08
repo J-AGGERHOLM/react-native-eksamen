@@ -1,11 +1,12 @@
-import { View, Text } from "react-native";
-import { NavBar } from "../components/layout/Navbar";
+import { View, Text, StyleSheet } from "react-native";
+import { ScreenContainer } from "../components/layout/ScreenContainer";
 
 export function HomeScreen() {
   return (
-    <View>
-      <Text>HomeScreen heje hejehe j</Text>
-      <NavBar/>
-    </View>
+    <ScreenContainer>
+      <View>
+        <Text>HomeScreen heje hejehe j</Text>
+      </View>
+    </ScreenContainer>
   );
 }

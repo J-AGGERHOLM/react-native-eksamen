@@ -1,7 +1,6 @@
 import { View, StyleSheet, SafeAreaView } from "react-native";
-import { NavBar } from "./Navbar";
 
-export function ScreenContainer({ children, hideNavbar = true }) {
+export function LogInContainer({ children, hideNavbar = false }) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>{children}</View>

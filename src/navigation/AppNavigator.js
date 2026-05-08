@@ -1,20 +1,19 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoginPage } from "../screens/LoginScreen";
-import { HomeScreen } from "../screens/HomeScreen";
-import { HistoryScreen } from "../screens/HistoryScreen";
-import { GoalOverviewScreen } from "../screens/GoalOverviewScreen";
 import { GoalDetailsScreen } from "../screens/GoalDetailsScreen";
+import { NavBar } from "../components/layout/Navbar";
 
 const Stack = createNativeStackNavigator();
 
+//AppNavigator — handles the top-level routing,
+// specifically keeping LoginPage outside the tabs (you don't want a bottom tab bar on the login screen)
+// and GoalDetailsPage as a drill-down screen that slides over the tabs.
 export function AppNavigator() {
   return (
     <Stack.Navigator initialRouteName="LoginPage" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="LoginPage" component={LoginPage} />
-      <Stack.Screen name="HomePage" component={HomeScreen}></Stack.Screen>
-      <Stack.Screen name="HistoryPage" component={HistoryScreen}></Stack.Screen>
-      <Stack.Screen name="GoalOverviewPage" component={GoalOverviewScreen}></Stack.Screen>
-      <Stack.Screen name="GoalDetailsPage" component={GoalDetailsScreen}></Stack.Screen>
+      <Stack.Screen name="MainTabs" component={NavBar} />
+      <Stack.Screen name="GoalDetailsPage" component={GoalDetailsScreen} />
     </Stack.Navigator>
   );
 }
