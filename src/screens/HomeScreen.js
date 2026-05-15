@@ -1,11 +1,7 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-} from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
+import { useNavigation } from "@react-navigation/native";
 
 const goals = [
   {
@@ -28,10 +24,7 @@ const goals = [
 export function HomeScreen() {
   return (
     <ScreenContainer>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <SavingsSummaryCard />
 
         <View style={styles.sectionHeader}>
@@ -49,6 +42,7 @@ export function HomeScreen() {
               title={goal.title}
               saved={goal.saved}
               target={goal.target}
+              onPress={() => navigation.navigate("GoalDetailsPage")}
             />
           ))}
         </View>
@@ -84,39 +78,32 @@ function totalSavings () {
   return totalSavings;
 }*/
 
-
 function GoalCard({ title, saved, target }) {
   const progress = saved / target;
   const progressPercent = Math.round(progress * 100);
   const remaining = target - saved;
 
   return (
-    <View style={styles.goalCard}>
-      <Text style={styles.goalTitle}>{title}</Text>
+    <Pressable>
+      <View style={styles.goalCard}>
+        <Text style={styles.goalTitle}>{title}</Text>
 
-      <Text style={styles.goalAmount}>
-        {saved} of {target}
-      </Text>
-
-      <View style={styles.progressTrack}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${Math.min(progressPercent, 100)}%` },
-          ]}
-        />
-      </View>
-
-      <View style={styles.goalFooter}>
-        <Text style={styles.goalFooterText}>{progressPercent}% complete</Text>
-        <Text style={styles.remainingText}>
-          {remaining} to go
+        <Text style={styles.goalAmount}>
+          {saved} of {target}
         </Text>
+
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${Math.min(progressPercent, 100)}%` }]} />
+        </View>
+
+        <View style={styles.goalFooter}>
+          <Text style={styles.goalFooterText}>{progressPercent}% complete</Text>
+          <Text style={styles.remainingText}>{remaining} to go</Text>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
-
 
 const styles = StyleSheet.create({
   content: {
