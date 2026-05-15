@@ -86,14 +86,14 @@ export function HistoryScreen() {
             Bruger Object.keys til at hente dato, som er nøglen i dictionary. 
             Looper igennem alle datoer
         */}
-        {Object.keys(groupedTransactions).map((dateKey) => (
+        {Object.keys(groupedTransactions).map(dateKey => (
           <View key={dateKey} style={styles.dateGroup}>
             <Text style={styles.dateTitle}>{formatDateLabel(dateKey)}</Text>
             {/* 
                 Looper igennem alle transactioner for den specifikke dato
                 key={transaction.id} er til for at react kan kende forskel på elementerne. 
             */}
-            {groupedTransactions[dateKey].map((transaction) => (
+            {groupedTransactions[dateKey].map(transaction => (
               <TransactionCard
                 key={transaction.id}
                 transaction={transaction}
@@ -108,7 +108,7 @@ export function HistoryScreen() {
 
 function TransactionCard({ transaction }) {
   // Finder navn på transaction.
-  const goal = goals.find((goal) => goal.id === transaction.goalId);
+  const goal = goals.find(goal => goal.id === transaction.goalId);
   const goalName = goal ? goal.name : "Unknown goal";
 
   // Laver view for specifik transaction
