@@ -1,7 +1,10 @@
 import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
 import { LogInContainer } from "../components/layout/LogInContainer";
+import { useNavigation } from "@react-navigation/native";
 
-export function LoginPage({ navigation }) {
+export function LoginPage() {
+  const navigation = useNavigation();
+
   return (
     <LogInContainer>
       {/* Logo + brand */}
