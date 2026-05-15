@@ -20,7 +20,7 @@ const startGoals = [
   {
     id: "2",
     completed: false,
-    dueDate: "July 15, 2026 at 12:00:00 AM UTC+2",
+    dueDate: "July 15, 2026 at 12:00:00 AM UTC+",
     name: "Summer Vacation",
     startDate: "May 2, 2026 at 12:00:00 AM UTC+2",
     userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
