@@ -1,11 +1,12 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
-import { LogInContainer } from "../components/layout/LogInContainer";
 import { FontAwesome5 } from "@expo/vector-icons";
 
-export function GoalDetailsScreen({ navigation, route }) {
+export function GoalDetailsScreen({ route }) {
+  const navigation = useNavigation();
   const { goalId } = route.params;
+
   console.log(goalId);
 
   const goal = {
@@ -38,7 +39,7 @@ export function GoalDetailsScreen({ navigation, route }) {
   ];
 
   return (
-    <LogInContainer>
+    <ScreenContainer>
       <View style={styles.screen}>
         <View style={styles.topActions}>
           <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -103,7 +104,7 @@ export function GoalDetailsScreen({ navigation, route }) {
           <Text style={styles.addMoneyText}>Add Money</Text>
         </Pressable>
       </View>
-    </LogInContainer>
+    </ScreenContainer>
   );
 }
 
