@@ -1,4 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { StyleSheet } from "react-native";
 
 import { HomeScreen } from "../../screens/HomeScreen";
 import { HistoryScreen } from "../../screens/HistoryScreen";
@@ -6,14 +8,56 @@ import { GoalOverviewScreen } from "../../screens/GoalOverviewScreen";
 
 const Tab = createBottomTabNavigator();
 
-
-//MainTabs — this is your navbar now. It defines the three bottom tabs and is what replaced your old NavBar component.
 export function NavBar() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="HomePage" component={HomeScreen} />
-      <Tab.Screen name="HistoryPage" component={HistoryScreen} />
-      <Tab.Screen name="GoalOverviewPage" component={GoalOverviewScreen} />
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabBarLabel,
+      }}>
+      <Tab.Screen
+        // name is the internal route name.
+        name="HomePage"
+        // component is the actual screen/page that should be shown
+        // when the user presses this tab.
+        component={HomeScreen}
+        // options controls how this tab looks and behaves in the navbar.
+        options={{
+          title: "Home",
+          // tabBarIcon lets us render an icon above/next to the label.
+          // React Navigation automatically gives us color and size.
+          tabBarIcon: ({ color, size }) => <FontAwesome5 name="home" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="HistoryPage"
+        component={HistoryScreen}
+        options={{
+          title: "History",
+          tabBarIcon: ({ color, size }) => <FontAwesome5 name="history" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="GoalOverviewPage"
+        component={GoalOverviewScreen}
+        options={{
+          title: "Goals",
+          tabBarIcon: ({ color, size }) => <FontAwesome5 name="bullseye" size={size} color={color} />,
+        }}
+      />
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    height: 85,
+    paddingTop: 8,
+    paddingBottom: 10,
+  },
+
+  tabBarLabel: {
+    marginTop: 4,
+  },
+});

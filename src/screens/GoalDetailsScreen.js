@@ -1,7 +1,13 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
+import { useNavigation } from "@react-navigation/native";
+import { LogInContainer } from "../components/layout/LogInContainer";
+import { FontAwesome5 } from "@expo/vector-icons";
 
-export function GoalDetailsScreen({ navigation }) {
+export function GoalDetailsScreen({ navigation, route }) {
+  const { goalId } = route.params;
+  console.log(goalId);
+
   const goal = {
     name: "New MacBook Pro",
     current: "$1.650",
@@ -32,91 +38,72 @@ export function GoalDetailsScreen({ navigation }) {
   ];
 
   return (
-    <ScreenContainer>
+    <LogInContainer>
       <View style={styles.screen}>
+        <View style={styles.topActions}>
+          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+            <FontAwesome5 name="arrow-left" size={18} color="#111" />
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
 
-            <Pressable onPress={() => alert("Delete goal")}>
-              <Text style={styles.deleteIcon}>🗑</Text>
-            </Pressable>
+          <Pressable onPress={() => alert("Delete goal")}>
+            <FontAwesome5 name="trash-alt" size={18} color="#ef4444" />
+          </Pressable>
+        </View>
 
-          {/* Blue goal card */}
-          <View style={styles.goalCard}>
-            <Text style={styles.goalTitle}>{goal.name}</Text>
+        {/* Blue goal card */}
+        <View style={styles.goalCard}>
+          <Text style={styles.goalTitle}>{goal.name}</Text>
 
-            <View style={styles.moneyRow}>
-              <View>
-                <Text style={styles.smallBlueText}>Current progress</Text>
-                <Text style={styles.bigMoney}>{goal.current}</Text>
-              </View>
-
-              <View style={styles.targetBlock}>
-                <Text style={styles.smallBlueText}>Target</Text>
-                <Text style={styles.targetMoney}>{goal.target}</Text>
-              </View>
+          <View style={styles.moneyRow}>
+            <View>
+              <Text style={styles.smallBlueText}>Current progress</Text>
+              <Text style={styles.bigMoney}>{goal.current}</Text>
             </View>
 
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: goal.percent + "%" }]} />
-            </View>
-
-            <View style={styles.progressInfoRow}>
-              <Text style={styles.cardBottomText}>{goal.percent}.0% complete</Text>
-              <Text style={styles.cardBottomText}>{goal.remaining} remaining</Text>
+            <View style={styles.targetBlock}>
+              <Text style={styles.smallBlueText}>Target</Text>
+              <Text style={styles.targetMoney}>{goal.target}</Text>
             </View>
           </View>
 
-          {/* Projection box */}
-          <View style={styles.projectionCard}>
-            <Text style={styles.sectionTitle}>Smart Projections</Text>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: goal.percent + "%" }]} />
+          </View>
 
-            <View style={styles.projectionList}>
-              {projections.map((item) => (
-                <View style={styles.projectionItem} key={item.id}>
-                  <View>
-                    <Text style={styles.projectionTitle}>{item.title}</Text>
-                    <Text style={styles.projectionWeeks}>{item.weeks}</Text>
-                  </View>
+          <View style={styles.progressInfoRow}>
+            <Text style={styles.cardBottomText}>{goal.percent}.0% complete</Text>
+            <Text style={styles.cardBottomText}>{goal.remaining} remaining</Text>
+          </View>
+        </View>
 
-                  <Text style={styles.projectionDate}>{item.date}</Text>
+        {/* Projection box */}
+        <View style={styles.projectionCard}>
+          <Text style={styles.sectionTitle}>Smart Projections</Text>
+
+          <View style={styles.projectionList}>
+            {projections.map((item) => (
+              <View style={styles.projectionItem} key={item.id}>
+                <View>
+                  <Text style={styles.projectionTitle}>{item.title}</Text>
+                  <Text style={styles.projectionWeeks}>{item.weeks}</Text>
                 </View>
-              ))}
-            </View>
+
+                <Text style={styles.projectionDate}>{item.date}</Text>
+              </View>
+            ))}
           </View>
         </View>
+      </View>
 
-        {/* Add money button */}
-        <View style={styles.buttonArea}>
-          <Pressable style={styles.addMoneyButton} onPress={() => alert("Add money")}>
-            <Text style={styles.plusText}>＋</Text>
-            <Text style={styles.addMoneyText}>Add Money</Text>
-          </Pressable>
-        </View>
-
-        {/* Bottom navigation look-alike */}
-        <View style={styles.bottomNav}>
-          <Pressable style={styles.navItem} onPress={() => navigation.navigate("MainTabs", { screen: "HomePage" })}>
-            <Text style={styles.navIcon}>⌂</Text>
-            <Text style={styles.navText}>Home</Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.navItem, styles.activeNavItem]}
-            onPress={() => navigation.navigate("MainTabs", { screen: "GoalOverviewPage" })}>
-            <Text style={styles.activeNavIcon}>◎</Text>
-            <Text style={styles.activeNavText}>Goals</Text>
-          </Pressable>
-
-          <Pressable style={styles.navItem} onPress={() => navigation.navigate("MainTabs", { screen: "HistoryPage" })}>
-            <Text style={styles.navIcon}>◷</Text>
-            <Text style={styles.navText}>History</Text>
-          </Pressable>
-
-          <Pressable style={styles.navItem} onPress={() => alert("Analytics page not created yet")}>
-            <Text style={styles.navIcon}>↗</Text>
-            <Text style={styles.navText}>Analytics</Text>
-          </Pressable>
-        </View>
-    </ScreenContainer>
+      {/* Add money button */}
+      <View style={styles.buttonArea}>
+        <Pressable style={styles.addMoneyButton} onPress={() => alert("Add money")}>
+          <Text style={styles.plusText}>＋</Text>
+          <Text style={styles.addMoneyText}>Add Money</Text>
+        </Pressable>
+      </View>
+    </LogInContainer>
   );
 }
 
