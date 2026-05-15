@@ -54,10 +54,7 @@ export function HomeScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <SavingsSummaryCard />
 
         <View style={styles.sectionHeader}>
@@ -149,7 +146,6 @@ function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress })
     </Pressable>
   );
 }
-
 
 const styles = StyleSheet.create({
   content: {
