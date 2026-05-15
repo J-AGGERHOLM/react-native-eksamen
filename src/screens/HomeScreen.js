@@ -13,27 +13,45 @@ import { useNavigation } from "@react-navigation/native";
 const goals = [
   {
     id: "1",
-    title: "New MacBook Pro",
-    saved: 1650,
+    completed: false,
+    dueDate: "May 27, 2026 at 6:06:06 AM UTC+2",
+    name: "New MacBook Pro",
+    startDate: "May 2, 2026 at 12:00:00 AM UTC+2",
+    userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    amountLeft: 1999,
+    totalPaid: 500,
     target: 2499,
+    percentage: 20,
   },
   {
     id: "2",
-    title: "Summer Vacation",
-    saved: 890,
+    completed: false,
+    dueDate: "July 15, 2026 at 12:00:00 AM UTC+2",
+    name: "Summer Vacation",
+    startDate: "May 2, 2026 at 12:00:00 AM UTC+2",
+    userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    amountLeft: 2800,
+    totalPaid: 700,
     target: 3500,
+    percentage: 20,
   },
   {
     id: "3",
-    title: "Emergency Fund",
-    saved: 4200,
+    completed: false,
+    dueDate: "December 31, 2026 at 12:00:00 AM UTC+2",
+    name: "Emergency Fund",
+    startDate: "May 2, 2026 at 12:00:00 AM UTC+2",
+    userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    amountLeft: 7500,
+    totalPaid: 2500,
     target: 10000,
+    percentage: 25,
   },
 ];
 
 export function HomeScreen() {
   const navigation = useNavigation();
-  
+
   return (
     <ScreenContainer>
       <ScrollView
@@ -51,19 +69,23 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.goalList}>
-          {goals.map((goal) => (
-            <GoalCard
-              key={goal.id}
-              title={goal.title}
-              saved={goal.saved}
-              target={goal.target}
-              onPress={() =>
-                navigation.navigate("GoalDetailsPage", {
-                  goalId: goal.id,
-                })
-              }
-            />
-          ))}
+          {goals
+            .filter((goal) => !goal.completed)
+            .map((goal) => (
+              <GoalCard
+                key={goal.id}
+                title={goal.name}
+                totalPaid={goal.totalPaid}
+                target={goal.target}
+                percentage={goal.percentage}
+                amountLeft={goal.amountLeft}
+                onPress={() =>
+                  navigation.navigate("GoalDetailsPage", {
+                    goalId: goal.id,
+                  })
+                }
+              />
+            ))}
         </View>
       </ScrollView>
     </ScreenContainer>
@@ -71,58 +93,58 @@ export function HomeScreen() {
 }
 
 function SavingsSummaryCard() {
+  const { totalPaid, totalAmount } = totalSavings();
   return (
     <View style={styles.summaryCard}>
       <View>
         <Text style={styles.summaryLabel}>Total Savings</Text>
-        <Text style={styles.summaryAmount}>$a number</Text>
+        <Text style={styles.summaryAmount}>${totalPaid}</Text>
 
         <View style={styles.summaryFooter}>
-          <Text style={styles.summaryFooterText}>Target: $15.999</Text>
-          <Text style={styles.summaryFooterText}>{goals.length} active goals</Text>
+          <Text style={styles.summaryFooterText}>Target: ${totalAmount}</Text>
+          <Text style={styles.summaryFooterText}>
+            {goals.filter(goal => !goal.completed).length} active goals
+          </Text>
         </View>
       </View>
     </View>
   );
 }
-/*
-function totalSavings () {
-  let totalSavings = 0;
 
-  goals.map(goal =>{
-    console.log(goal.saved);
-    totalSavings += goal.saved;
-  } )
+function totalSavings() {
+  let totalPaid = 0;
+  let totalAmount = 0;
 
-  return totalSavings;
-}*/
+  goals.map((goal) => {
+    totalPaid += goal.totalPaid;
+    totalAmount += goal.target;
+  });
+
+  return { totalPaid, totalAmount };
+}
 
 
-function GoalCard({ title, saved, target, onPress }) {
-  const progress = saved / target;
-  const progressPercent = Math.round(progress * 100);
-  const remaining = target - saved;
-
+function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress }) {
   return (
     <Pressable onPress={onPress} style={styles.goalCard}>
       <Text style={styles.goalTitle}>{title}</Text>
 
       <Text style={styles.goalAmount}>
-        {saved} of {target}
+        {totalPaid} of {target}
       </Text>
 
       <View style={styles.progressTrack}>
         <View
           style={[
             styles.progressFill,
-            { width: `${Math.min(progressPercent, 100)}%` },
+            { width: `${Math.min(percentage, 100)}%` },
           ]}
         />
       </View>
 
       <View style={styles.goalFooter}>
-        <Text style={styles.goalFooterText}>{progressPercent}% complete</Text>
-        <Text style={styles.remainingText}>{remaining} to go</Text>
+        <Text style={styles.goalFooterText}>{percentage}% complete</Text>
+        <Text style={styles.remainingText}>{amountLeft} to go</Text>
       </View>
     </Pressable>
   );
