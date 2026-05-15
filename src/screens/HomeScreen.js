@@ -6,19 +6,25 @@ import {
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
+import { useNavigation } from "@react-navigation/native";
+
+
 
 const goals = [
   {
+    id: "1",
     title: "New MacBook Pro",
     saved: 1650,
     target: 2499,
   },
   {
+    id: "2",
     title: "Summer Vacation",
     saved: 890,
     target: 3500,
   },
   {
+    id: "3",
     title: "Emergency Fund",
     saved: 4200,
     target: 10000,
@@ -26,6 +32,8 @@ const goals = [
 ];
 
 export function HomeScreen() {
+  const navigation = useNavigation();
+  
   return (
     <ScreenContainer>
       <ScrollView
@@ -45,10 +53,15 @@ export function HomeScreen() {
         <View style={styles.goalList}>
           {goals.map((goal) => (
             <GoalCard
-              key={goal.title}
+              key={goal.id}
               title={goal.title}
               saved={goal.saved}
               target={goal.target}
+              onPress={() =>
+                navigation.navigate("GoalDetailsPage", {
+                  goalId: goal.id,
+                })
+              }
             />
           ))}
         </View>
@@ -85,13 +98,13 @@ function totalSavings () {
 }*/
 
 
-function GoalCard({ title, saved, target }) {
+function GoalCard({ title, saved, target, onPress }) {
   const progress = saved / target;
   const progressPercent = Math.round(progress * 100);
   const remaining = target - saved;
 
   return (
-    <View style={styles.goalCard}>
+    <Pressable onPress={onPress} style={styles.goalCard}>
       <Text style={styles.goalTitle}>{title}</Text>
 
       <Text style={styles.goalAmount}>
@@ -109,11 +122,9 @@ function GoalCard({ title, saved, target }) {
 
       <View style={styles.goalFooter}>
         <Text style={styles.goalFooterText}>{progressPercent}% complete</Text>
-        <Text style={styles.remainingText}>
-          {remaining} to go
-        </Text>
+        <Text style={styles.remainingText}>{remaining} to go</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
