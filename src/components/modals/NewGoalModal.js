@@ -1,9 +1,15 @@
-import { Modal, View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform } from "react-native";
 import { useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import * as Crypto from "expo-crypto";
 
 export function NewGoalModal({ visible, onClose, onCreateGoal }) {
   const [goalName, setGoalName] = useState("");
   const [targetAmount, setTargetAmount] = useState("");
+
+  const [dueDate, setDueDate] = useState("");
+  const [datePickerValue, setDatePickerValue] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   function createGoal() {
     const cleanedName = goalName.trim();
@@ -19,12 +25,17 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
       return;
     }
 
+    if (dueDate.length === 0) {
+      alert("Please select a due date");
+      return;
+    }
+
     const newGoal = {
-      id: Date.now().toString(),
+      id: Crypto.randomUUID(),
       completed: false,
-      dueDate: "No date set",
+      dueDate: dueDate,
       name: cleanedName,
-      startDate: new Date().toString(),
+      startDate: formatDate(new Date()),
       userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
       amountLeft: targetNumber,
       totalPaid: 0,
@@ -34,16 +45,39 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
 
     onCreateGoal(newGoal);
 
+    resetForm();
+    onClose();
+  }
+
+  function resetForm() {
     setGoalName("");
     setTargetAmount("");
+    setDueDate("");
+    setDatePickerValue(new Date());
+    setShowDatePicker(false);
+  }
+
+  function closeModal() {
+    resetForm();
     onClose();
+  }
+
+  function handleDateChange(event, selectedDate) {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
+
+    if (selectedDate) {
+      setDatePickerValue(selectedDate);
+      setDueDate(formatDate(selectedDate));
+    }
   }
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modalCard}>
-          <Pressable style={styles.closeButton} onPress={onClose}>
+          <Pressable style={styles.closeButton} onPress={closeModal}>
             <Text style={styles.closeText}>×</Text>
           </Pressable>
 
@@ -74,6 +108,18 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
               />
             </View>
 
+            <View style={styles.fieldBlock}>
+              <Text style={styles.label}>Due date</Text>
+
+              <Pressable style={styles.dateInput} onPress={() => setShowDatePicker(true)}>
+                <Text style={dueDate ? styles.dateText : styles.placeholderText}>{dueDate || "Select due date"}</Text>
+              </Pressable>
+
+              {showDatePicker && (
+                <DateTimePicker value={datePickerValue} mode="date" display="default" onChange={handleDateChange} />
+              )}
+            </View>
+
             <Pressable style={styles.createButton} onPress={createGoal}>
               <Text style={styles.createButtonText}>Create Goal</Text>
             </Pressable>
@@ -82,6 +128,14 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
       </View>
     </Modal>
   );
+}
+
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 const styles = StyleSheet.create({
@@ -148,6 +202,23 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: "#111",
+  },
+
+  dateInput: {
+    backgroundColor: "#f1f1f4",
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+
+  dateText: {
+    fontSize: 15,
+    color: "#111",
+  },
+
+  placeholderText: {
+    fontSize: 15,
+    color: "#8f8f99",
   },
 
   createButton: {
