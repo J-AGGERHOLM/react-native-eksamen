@@ -3,8 +3,8 @@ import {
   Text,
   StyleSheet,
   Pressable,
+  ScrollView
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 
