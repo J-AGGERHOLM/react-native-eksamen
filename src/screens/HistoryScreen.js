@@ -1,12 +1,300 @@
-import { View, Text } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+} from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 
+const goals = [
+  {
+    id: "1",
+    name: "New MacBook Pro",
+  },
+  {
+    id: "2",
+    name: "Summer Vacation",
+  },
+  {
+    id: "3",
+    name: "Emergency Fund",
+  },
+];
+
+const transactions = [
+  {
+    id: "1",
+    amount: 900,
+    date: "2026-04-25T02:00:00",
+    goalId: "3",
+  },
+  {
+    id: "2",
+    amount: 340,
+    date: "2026-04-20T02:00:00",
+    goalId: "2",
+  },
+  {
+    id: "3",
+    amount: 200,
+    date: "2026-04-15T02:00:00",
+    goalId: "1",
+  },
+];
+
 export function HistoryScreen() {
+  // totalContributed = Samlet overføresler.
+  const totalContributed = transactions.reduce((total, transaction) => {
+    return total + transaction.amount;
+  }, 0);
+
+  // Gruppere transactions efter dato.
+  const groupedTransactions = groupTransactionsByDate(transactions);
+
   return (
     <ScreenContainer>
-      <View>
-        <Text>HistoryScreen heje hejehe j</Text>
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.pageTitle}>Transaction History</Text>
+
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryLabel}>Total Contributed</Text>
+          <Text style={styles.summaryAmount}>
+            {totalContributed}kr
+          </Text>
+          <Text style={styles.summarySubText}>
+            {transactions.length} transactions
+          </Text>
+        </View>
+
+        <View style={styles.filterRow}>
+          <Pressable style={styles.filterButton}>
+            <Text style={styles.filterText}>All goals</Text>
+            <Text style={styles.filterArrow}>⌄</Text>
+          </Pressable>
+
+          <Pressable style={styles.filterButton}>
+            <Text style={styles.filterText}>All time</Text>
+            <Text style={styles.filterArrow}>⌄</Text>
+          </Pressable>
+        </View>
+        {/* 
+            Bruger Object.keys til at hente dato, som er nøglen i dictionary. 
+            Looper igennem alle datoer
+        */}
+        {Object.keys(groupedTransactions).map(dateKey => (
+          <View key={dateKey} style={styles.dateGroup}>
+            <Text style={styles.dateTitle}>{formatDateLabel(dateKey)}</Text>
+            {/* 
+                Looper igennem alle transactioner for den specifikke dato
+                key={transaction.id} er til for at react kan kende forskel på elementerne. 
+            */}
+            {groupedTransactions[dateKey].map(transaction => (
+              <TransactionCard
+                key={transaction.id}
+                transaction={transaction}
+              />
+            ))}
+          </View>
+        ))}
+      </ScrollView>
     </ScreenContainer>
   );
 }
+
+function TransactionCard({ transaction }) {
+  // Finder navn på transaction.
+  const goal = goals.find(goal => goal.id === transaction.goalId);
+  const goalName = goal ? goal.name : "Unknown goal";
+
+  // Laver view for specifik transaction
+  return (
+    <View style={styles.transactionCard}>
+      <View>
+        <Text style={styles.transactionGoal}>{goalName}</Text>
+        <Text style={styles.transactionTime}>
+          {transaction.date}
+        </Text>
+      </View>
+
+      <Text style={styles.transactionAmount}>
+        +{transaction.amount}kr
+      </Text>
+    </View>
+  );
+}
+
+function groupTransactionsByDate(transactions) {
+  return transactions.reduce((groups, transaction) => {
+    // Henter kun dato
+    const dateKey = transaction.date.split("T")[0];
+
+    // Hvis dato ikke eksistere
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+
+    // indsæt transaktion på dato gruppen.
+    groups[dateKey].push(transaction);
+
+    return groups;
+  }, {});
+}
+
+function formatDateLabel(dateString) {
+  const date = new Date(dateString);
+
+  // long = skriver teksten helt ud
+  return date.toLocaleDateString("da-DK", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+
+  content: {
+    paddingBottom: 120,
+  },
+
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#111111",
+    marginBottom: 24,
+  },
+
+  summaryCard: {
+    backgroundColor: "#07983d",
+    borderRadius: 22,
+    padding: 24,
+    marginBottom: 24,
+  },
+
+  summaryLabel: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.85)",
+    marginBottom: 6,
+  },
+
+  summaryAmount: {
+    fontSize: 40,
+    fontWeight: "500",
+    color: "#ffffff",
+    marginBottom: 12,
+  },
+
+  summarySubText: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.85)",
+  },
+
+  filterRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 24,
+  },
+
+  filterButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: "#f1f1f3",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  filterText: {
+    fontSize: 15,
+    color: "#111111",
+  },
+
+  filterArrow: {
+    fontSize: 18,
+    color: "#94a3b8",
+  },
+
+  dateGroup: {
+    marginBottom: 24,
+  },
+
+  dateTitle: {
+    fontSize: 15,
+    color: "#475569",
+    marginBottom: 12,
+  },
+
+  transactionCard: {
+    minHeight: 82,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  transactionGoal: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#111111",
+    marginBottom: 6,
+  },
+
+  transactionTime: {
+    fontSize: 14,
+    color: "#475569",
+  },
+
+  transactionAmount: {
+    fontSize: 18,
+    color: "#00a63e",
+    fontWeight: "500",
+  },
+
+  transactionCard: {
+    minHeight: 82,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+
+  transactionGoal: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#111111",
+    marginBottom: 6,
+  },
+
+  transactionTime: {
+    fontSize: 14,
+    color: "#475569",
+  },
+
+  transactionAmount: {
+    fontSize: 18,
+    color: "#00a63e",
+    fontWeight: "500",
+  },
+});
