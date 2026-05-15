@@ -1,16 +1,10 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView
-} from "react-native";
+import { useState } from "react";
+import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
+import { NewGoalModal } from "../components/modals/NewGoalModal";
 
-
-
-const goals = [
+const startGoals = [
   {
     id: "1",
     completed: false,
@@ -52,15 +46,22 @@ const goals = [
 export function HomeScreen() {
   const navigation = useNavigation();
 
+  const [goals, setGoals] = useState(startGoals);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  function addGoal(newGoal) {
+    setGoals((currentGoals) => [...currentGoals, newGoal]);
+  }
+
   return (
     <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <SavingsSummaryCard />
+        <SavingsSummaryCard goals={goals} />
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Goals</Text>
 
-          <Pressable style={styles.newGoalButton}>
+          <Pressable style={styles.newGoalButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.newGoalButtonText}>+ New Goal</Text>
           </Pressable>
         </View>
@@ -85,12 +86,13 @@ export function HomeScreen() {
             ))}
         </View>
       </ScrollView>
+      <NewGoalModal visible={modalVisible} onClose={() => setModalVisible(false)} onCreateGoal={addGoal} />
     </ScreenContainer>
   );
 }
 
-function SavingsSummaryCard() {
-  const { totalPaid, totalAmount } = totalSavings();
+function SavingsSummaryCard({ goals }) {
+  const { totalPaid, totalAmount } = totalSavings(goals);
   return (
     <View style={styles.summaryCard}>
       <View>
@@ -99,16 +101,14 @@ function SavingsSummaryCard() {
 
         <View style={styles.summaryFooter}>
           <Text style={styles.summaryFooterText}>Target: ${totalAmount}</Text>
-          <Text style={styles.summaryFooterText}>
-            {goals.filter(goal => !goal.completed).length} active goals
-          </Text>
+          <Text style={styles.summaryFooterText}>{goals.filter((goal) => !goal.completed).length} active goals</Text>
         </View>
       </View>
     </View>
   );
 }
 
-function totalSavings() {
+function totalSavings(goals) {
   let totalPaid = 0;
   let totalAmount = 0;
 
@@ -120,7 +120,6 @@ function totalSavings() {
   return { totalPaid, totalAmount };
 }
 
-
 function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress }) {
   return (
     <Pressable onPress={onPress} style={styles.goalCard}>
@@ -131,12 +130,7 @@ function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress })
       </Text>
 
       <View style={styles.progressTrack}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${Math.min(percentage, 100)}%` },
-          ]}
-        />
+        <View style={[styles.progressFill, { width: `${Math.min(percentage, 100)}%` }]} />
       </View>
 
       <View style={styles.goalFooter}>
