@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 
-export function GoalOverviewScreen() {
+export function MileStoneScreen() {
   return (
     <ScreenContainer>
       <View>

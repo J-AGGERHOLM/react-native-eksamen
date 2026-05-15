@@ -4,8 +4,7 @@ import { StyleSheet } from "react-native";
 
 import { HomeScreen } from "../../screens/HomeScreen";
 import { HistoryScreen } from "../../screens/HistoryScreen";
-import { GoalOverviewScreen } from "../../screens/GoalOverviewScreen";
-
+import { MileStoneScreen } from "../../screens/MileStoneScreen";
 const Tab = createBottomTabNavigator();
 
 export function NavBar() {
@@ -39,10 +38,10 @@ export function NavBar() {
         }}
       />
       <Tab.Screen
-        name="GoalOverviewPage"
-        component={GoalOverviewScreen}
+        name="MileStonePage"
+        component={MileStoneScreen}
         options={{
-          title: "Goals",
+          title: "Mile Stones",
           tabBarIcon: ({ color, size }) => <FontAwesome5 name="bullseye" size={size} color={color} />,
         }}
       />

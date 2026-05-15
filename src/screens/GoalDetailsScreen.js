@@ -5,38 +5,12 @@ import { FontAwesome5 } from "@expo/vector-icons";
 
 export function GoalDetailsScreen({ route }) {
   const navigation = useNavigation();
-  const { goalId } = route.params;
 
-  console.log(goalId);
+  const { goal } = route.params;
 
-  const goal = {
-    name: "New MacBook Pro",
-    current: "$1.650",
-    target: "$2.499",
-    percent: 66,
-    remaining: "$849",
-  };
-
-  const projections = [
-    {
-      id: 1,
-      title: "Save $50/week",
-      weeks: "17 weeks",
-      date: "Aug 27, 2026",
-    },
-    {
-      id: 2,
-      title: "Save $100/week",
-      weeks: "9 weeks",
-      date: "Jul 2, 2026",
-    },
-    {
-      id: 3,
-      title: "Save $200/week",
-      weeks: "5 weeks",
-      date: "Jun 4, 2026",
-    },
-  ];
+  const amountLeft = calculateAmountLeft(goal);
+  const percentage = calculatePercentage(goal);
+  const projections = calculateProjections(goal);
 
   return (
     <ScreenContainer>
@@ -52,33 +26,32 @@ export function GoalDetailsScreen({ route }) {
           </Pressable>
         </View>
 
-        {/* Blue goal card */}
         <View style={styles.goalCard}>
           <Text style={styles.goalTitle}>{goal.name}</Text>
+          <Text style={styles.dueDateText}>Due date: {formatDisplayDate(goal.dueDate)}</Text>
 
           <View style={styles.moneyRow}>
             <View>
               <Text style={styles.smallBlueText}>Current progress</Text>
-              <Text style={styles.bigMoney}>{goal.current}</Text>
+              <Text style={styles.bigMoney}>{formatMoney(goal.totalPaid)}</Text>
             </View>
 
             <View style={styles.targetBlock}>
               <Text style={styles.smallBlueText}>Target</Text>
-              <Text style={styles.targetMoney}>{goal.target}</Text>
+              <Text style={styles.targetMoney}>{formatMoney(goal.target)}</Text>
             </View>
           </View>
 
           <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: goal.percent + "%" }]} />
+            <View style={[styles.progressFill, { width: `${percentage}%` }]} />
           </View>
 
           <View style={styles.progressInfoRow}>
-            <Text style={styles.cardBottomText}>{goal.percent}.0% complete</Text>
-            <Text style={styles.cardBottomText}>{goal.remaining} remaining</Text>
+            <Text style={styles.cardBottomText}>{percentage}% complete</Text>
+            <Text style={styles.cardBottomText}>{formatMoney(amountLeft)} remaining</Text>
           </View>
         </View>
 
-        {/* Projection box */}
         <View style={styles.projectionCard}>
           <Text style={styles.sectionTitle}>Smart Projections</Text>
 
@@ -97,7 +70,6 @@ export function GoalDetailsScreen({ route }) {
         </View>
       </View>
 
-      {/* Add money button */}
       <View style={styles.buttonArea}>
         <Pressable style={styles.addMoneyButton} onPress={() => alert("Add money")}>
           <Text style={styles.plusText}>＋</Text>
@@ -108,55 +80,70 @@ export function GoalDetailsScreen({ route }) {
   );
 }
 
+function calculateAmountLeft(goal) {
+  const target = Number(goal.target);
+  const totalPaid = Number(goal.totalPaid);
+
+  return Math.max(target - totalPaid, 0);
+}
+
+function calculatePercentage(goal) {
+  const target = Number(goal.target);
+  const totalPaid = Number(goal.totalPaid);
+
+  if (target <= 0) {
+    return 0;
+  }
+
+  const percentage = Math.round((totalPaid / target) * 100);
+
+  return Math.min(percentage, 100);
+}
+
+function calculateProjections(goal) {
+  const amountLeft = calculateAmountLeft(goal);
+
+  const weeklyAmounts = [50, 100, 200];
+
+  return weeklyAmounts.map((weeklyAmount) => {
+    const weeksNeeded = Math.ceil(amountLeft / weeklyAmount);
+    const completionDate = calculateCompletionDate(weeksNeeded);
+
+    return {
+      id: weeklyAmount.toString(),
+      title: `Save ${formatMoney(weeklyAmount)}/week`,
+      weeks: `${weeksNeeded} ${weeksNeeded === 1 ? "week" : "weeks"}`,
+      date: formatDisplayDate(completionDate),
+    };
+  });
+}
+
+function calculateCompletionDate(weeksNeeded) {
+  const completionDate = new Date();
+
+  completionDate.setDate(completionDate.getDate() + weeksNeeded * 7);
+
+  return completionDate;
+}
+
+function formatMoney(amount) {
+  return `$${Number(amount).toLocaleString()}`;
+}
+
+function formatDisplayDate(dateValue) {
+  const date = new Date(dateValue);
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-
-  header: {
-    paddingTop: 18,
-    paddingBottom: 14,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  appTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111",
-  },
-
-  greeting: {
-    fontSize: 14,
-    color: "#555",
-    marginTop: 2,
-  },
-
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-
-  logoutIcon: {
-    fontSize: 18,
-    color: "#111",
-  },
-
-  logoutText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111",
-  },
-
-  main: {
-    flex: 1,
-    paddingHorizontal: 24,
   },
 
   topActions: {
@@ -173,20 +160,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  backIcon: {
-    fontSize: 24,
-    color: "#111",
-  },
-
   backText: {
     fontSize: 14,
     fontWeight: "500",
     color: "#111",
-  },
-
-  deleteIcon: {
-    fontSize: 18,
-    color: "#ef4444",
   },
 
   goalCard: {
@@ -200,7 +177,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 24,
     fontWeight: "500",
-    marginBottom: 28,
+    marginBottom: 6,
+  },
+
+  dueDateText: {
+    color: "#bfdbfe",
+    fontSize: 14,
+    marginBottom: 26,
   },
 
   moneyRow: {
@@ -322,52 +305,6 @@ const styles = StyleSheet.create({
   addMoneyText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "600",
-  },
-
-  bottomNav: {
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    backgroundColor: "#fff",
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingHorizontal: 18,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  navItem: {
-    width: 68,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-
-  activeNavItem: {
-    backgroundColor: "#eaf2ff",
-  },
-
-  navIcon: {
-    fontSize: 22,
-    color: "#475569",
-    marginBottom: 2,
-  },
-
-  activeNavIcon: {
-    fontSize: 22,
-    color: "#2563eb",
-    marginBottom: 2,
-  },
-
-  navText: {
-    fontSize: 12,
-    color: "#475569",
-  },
-
-  activeNavText: {
-    fontSize: 12,
-    color: "#2563eb",
     fontWeight: "600",
   },
 });

@@ -8,9 +8,9 @@ const startGoals = [
   {
     id: "1",
     completed: false,
-    dueDate: "May 27, 2026 at 6:06:06 AM UTC+2",
+    dueDate: new Date("2026-08-13T10:30:00"),
     name: "New MacBook Pro",
-    startDate: "May 2, 2026 at 12:00:00 AM UTC+2",
+    startDate: new Date(),
     userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
     amountLeft: 1999,
     totalPaid: 500,
@@ -20,9 +20,9 @@ const startGoals = [
   {
     id: "2",
     completed: false,
-    dueDate: "July 15, 2026 at 12:00:00 AM UTC+",
+    dueDate: new Date("2026-09-01T12:00:00"),
     name: "Summer Vacation",
-    startDate: "May 2, 2026 at 12:00:00 AM UTC+2",
+    startDate: new Date(),
     userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
     amountLeft: 2800,
     totalPaid: 700,
@@ -32,9 +32,9 @@ const startGoals = [
   {
     id: "3",
     completed: false,
-    dueDate: "December 31, 2026 at 12:00:00 AM UTC+2",
+    dueDate: new Date("2026-12-31T18:00:00"),
     name: "Emergency Fund",
-    startDate: "May 2, 2026 at 12:00:00 AM UTC+2",
+    startDate: new Date(),
     userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
     amountLeft: 7500,
     totalPaid: 2500,
@@ -79,7 +79,7 @@ export function HomeScreen() {
                 amountLeft={goal.amountLeft}
                 onPress={() =>
                   navigation.navigate("GoalDetailsPage", {
-                    goalId: goal.id,
+                    goal: goal,
                   })
                 }
               />
