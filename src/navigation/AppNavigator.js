@@ -1,7 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoginPage } from "../screens/LoginScreen";
-import { GoalDetailsScreen } from "../screens/GoalDetailsScreen";
 import { NavBar } from "../components/layout/Navbar";
+import { MileStoneScreen } from "../screens/MileStoneScreen";
+import { GoalDetailsScreen } from "../screens/GoalDetailsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -13,6 +14,7 @@ export function AppNavigator() {
     <Stack.Navigator initialRouteName="LoginPage" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="LoginPage" component={LoginPage} />
       <Stack.Screen name="MainTabs" component={NavBar} />
+      <Stack.Screen name="MileStonePage" component={MileStoneScreen} />
       <Stack.Screen name="GoalDetailsPage" component={GoalDetailsScreen} />
     </Stack.Navigator>
   );
