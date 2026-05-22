@@ -1,9 +1,6 @@
 import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform } from "react-native";
 import { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { SetGoal } from "../../services/GoalUtil";
-
-import * as Crypto from "expo-crypto";
 
 export function NewGoalModal({ visible, onClose, onCreateGoal }) {
   const [goalName, setGoalName] = useState("");
@@ -27,25 +24,21 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
       return;
     }
 
-    /*if (dueDate.length === 0) {
+    if (dueDate.length === 0) {
       alert("Please select a due date");
       return;
-    }*/
+    }
 
     const newGoal = {
-      id: Crypto.randomUUID(),
       completed: false,
       dueDate: dueDate,
       name: cleanedName,
       startDate: formatDate(new Date()),
-      userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
       amountLeft: targetNumber,
       totalPaid: 0,
       target: targetNumber,
       percentage: 0,
     };
-
-    SetGoal(newGoal)
 
     onCreateGoal(newGoal);
 
