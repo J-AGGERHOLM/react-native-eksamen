@@ -2,61 +2,75 @@ import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
 import { useState } from "react";
 import { LogInContainer } from "../components/layout/LogInContainer";
 import { useNavigation } from "@react-navigation/native";
-/* use initialized auth from firebase config*/
 import { auth } from "../../firebaseConfig";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
-export function LoginPage() {
+export function SignUpPage() {
   const navigation = useNavigation();
 
-  /* callback functions to set email and password */
+  /* callback functions to set variables */
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
+  const [confirmedPassword, setConfirmedPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  /* login function */
-  async function login() {
+  async function signUp() {
     try {
-      console.log("Email being sent:", enteredEmail.trim());
-      console.log("Password length:", enteredPassword.length);
-      console.log("Firebase project:", auth.app.options.projectId);
+      setErrorMessage("");
 
-      /* uses firebase/auth's function to call the store and authenticate with the credentials
-      auth: the initialized Firebase Auth instance from firebaseConfig */
-      const credentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
+      /* making sure we don't accidentaly commit emails with whitespaces */
+      const email = enteredEmail.trim();
 
-      console.log("Logged in as:", credentials.user.uid);
-      /* on succes navigate to MainTabs, and pass the userId as a JSON object */
+      /* if user doesn't fill out all forms, send error message to the screen */
+      if (!email || !enteredPassword || !confirmedPassword) {
+        setErrorMessage("Please fill out all fields.");
+        return;
+      }
+
+      /* if the passwords dont match, send error message to the screen*/
+      if (enteredPassword !== confirmedPassword) {
+        setErrorMessage("Passwords do not match.");
+        return;
+      }
+
+      /* using firestores build in function to persist new user credentials in the store 
+       auth: the initialized Firebase Auth instance from firebaseConfig */
+
+      const credentials = await createUserWithEmailAndPassword(auth, email, enteredPassword);
+
+      console.log("Signed up as:", credentials.user.uid);
+
+      /* if succes, navigate to maintabs, and pass the new user's id */
       navigation.navigate("MainTabs", { userId: credentials.user.uid });
     } catch (error) {
-      console.log("Login error:", error);
+      console.log("Signup error:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        setErrorMessage("This email is already in use.");
+      } else if (error.code === "auth/invalid-email") {
+        setErrorMessage("Please enter a valid email.");
+      } else if (error.code === "auth/weak-password") {
+        setErrorMessage("Password should be at least 6 characters.");
+      } else {
+        setErrorMessage("Could not create account.");
+      }
     }
   }
 
-  function goToSignUp() {
-    navigation.navigate("SignUpPage");
+  function goToLogin() {
+    navigation.navigate("LoginPage");
   }
 
   return (
     <LogInContainer>
-      {/* Logo + brand */}
-      <View style={styles.logoRow}>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🪙</Text>
-        </View>
-        <Text style={styles.brandName}>Vaultly</Text>
-      </View>
-
-      {/* Heading */}
       <View style={styles.headingBlock}>
-        <Text style={styles.heading}>Welcome back</Text>
-        <Text style={styles.subheading}>Enter your credentials to continue</Text>
+        <Text style={styles.heading}>Create account</Text>
+        <Text style={styles.subheading}>Sign up to start tracking your savings goals</Text>
       </View>
 
-      {/* Form */}
       <View style={styles.form}>
         <View style={styles.fieldBlock}>
           <Text style={styles.label}>Email address</Text>
-          {/* on change text, call the callback function for setting the email  */}
           <TextInput
             style={styles.input}
             placeholder="you@example.com"
@@ -69,13 +83,7 @@ export function LoginPage() {
         </View>
 
         <View style={styles.fieldBlock}>
-          <View style={styles.passwordRow}>
-            <Text style={styles.label}>Password</Text>
-            <Pressable>
-              <Text style={styles.forgot}>Forgot?</Text>
-            </Pressable>
-          </View>
-          {/* on change text, call the callback function for setting the password  */}
+          <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
             placeholder="••••••••"
@@ -87,25 +95,41 @@ export function LoginPage() {
           />
         </View>
 
-        <Pressable style={styles.signInButton} onPress={login}>
-          <Text style={styles.signInText}>Sign in</Text>
+        <View style={styles.fieldBlock}>
+          <Text style={styles.label}>Confirm password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            placeholderTextColor="#aaa"
+            secureTextEntry
+            autoCapitalize="none"
+            value={confirmedPassword}
+            onChangeText={setConfirmedPassword}
+          />
+        </View>
+
+        {/*
+        Shows the error message only if errorMessage contains text.
+        If errorMessage is an empty string, nothing is rendered.
+        This lets us display signup/login errors only when something has gone wrong. 
+        */}
+        {errorMessage !== "" && <Text style={styles.errorText}>{errorMessage}</Text>}
+
+        <Pressable style={styles.signUpButton} onPress={signUp}>
+          <Text style={styles.signUpButtonText}>Create account</Text>
         </Pressable>
       </View>
 
-      {/* Divider */}
       <View style={styles.dividerRow}>
         <View style={styles.dividerLine} />
         <Text style={styles.dividerText}>Or</Text>
         <View style={styles.dividerLine} />
       </View>
 
-      {/* Sign up */}
-      <View style={styles.signUpRow}>
-        <Text style={styles.signUpText}>Don't have an account? </Text>
-        <Pressable>
-          <Text style={styles.signUpLink} onPress={goToSignUp}>
-            Sign up
-          </Text>
+      <View style={styles.loginRow}>
+        <Text style={styles.loginText}>Already have an account? </Text>
+        <Pressable onPress={goToLogin}>
+          <Text style={styles.loginLink}>Sign in</Text>
         </Pressable>
       </View>
     </LogInContainer>
@@ -156,19 +180,10 @@ const styles = StyleSheet.create({
   fieldBlock: {
     gap: 6,
   },
-  passwordRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
   label: {
     fontSize: 14,
     fontWeight: "500",
     color: "#111",
-  },
-  forgot: {
-    fontSize: 14,
-    color: "#2563eb",
   },
   input: {
     backgroundColor: "#f3f4f6",
@@ -178,17 +193,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#111",
   },
-  signInButton: {
+  signUpButton: {
     backgroundColor: "#2563eb",
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
     marginTop: 4,
   },
-  signInText: {
+  signUpButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  errorText: {
+    color: "#dc2626",
+    fontSize: 14,
   },
   dividerRow: {
     flexDirection: "row",
@@ -205,17 +224,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#999",
   },
-  signUpRow: {
+  loginRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
   },
-  signUpText: {
+  loginText: {
     fontSize: 14,
     color: "#555",
   },
-  signUpLink: {
+  loginLink: {
     fontSize: 14,
     color: "#2563eb",
     fontWeight: "600",
