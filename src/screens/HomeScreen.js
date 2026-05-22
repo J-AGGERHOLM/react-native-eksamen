@@ -3,30 +3,47 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 import { NewGoalModal } from "../components/modals/NewGoalModal";
-import { GetGoals } from '../services/GoalUtil';
+import { GetGoals, SetGoal } from "../services/GoalUtil";
 
-export function HomeScreen() {
+export function HomeScreen({ route }) {
+  const userId = route.params?.userId;
+  console.log("homeScreen userId: ", userId);
   const navigation = useNavigation();
 
   const [goals, setGoals] = useState([]);
 
   useEffect(() => {
-    async function loadGoals(){
-      try{
-        const goals = await GetGoals();
+    async function loadGoals() {
+      try {
+        if (!userId) {
+          console.log("no userId found");
+          return;
+        }
+        const goals = await GetGoals(userId);
         setGoals(goals);
-      } catch(err){
+      } catch (err) {
         console.log("Could not load goals: " + err);
       }
     }
 
     loadGoals();
-  }, []);
+  }, [userId]);
 
   const [modalVisible, setModalVisible] = useState(false);
 
-  function addGoal(newGoal) {
-    setGoals((currentGoals) => [...currentGoals, newGoal]);
+  async function addGoal(newGoal) {
+    try {
+      if (!userId) {
+        console.log("No userId found");
+        return;
+      }
+
+      const savedGoal = await SetGoal(newGoal, userId);
+
+      setGoals((currentGoals) => [...currentGoals, savedGoal]);
+    } catch (err) {
+      console.log("Could not create goal: " + err);
+    }
   }
 
   return (

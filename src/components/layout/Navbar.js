@@ -7,7 +7,9 @@ import { HistoryScreen } from "../../screens/HistoryScreen";
 import { MileStoneScreen } from "../../screens/MileStoneScreen";
 const Tab = createBottomTabNavigator();
 
-export function NavBar() {
+export function NavBar({ route }) {
+  /* optional chaining to check for userId */
+  const userId = route.params?.userId;
   return (
     <Tab.Navigator
       screenOptions={{
@@ -21,6 +23,8 @@ export function NavBar() {
         // component is the actual screen/page that should be shown
         // when the user presses this tab.
         component={HomeScreen}
+        // passing the userId to the page
+        initialParams={{ userId }}
         // options controls how this tab looks and behaves in the navbar.
         options={{
           title: "Home",
@@ -32,6 +36,8 @@ export function NavBar() {
       <Tab.Screen
         name="HistoryPage"
         component={HistoryScreen}
+        // passing the userId to the page
+        initialParams={{ userId }}
         options={{
           title: "History",
           tabBarIcon: ({ color, size }) => <FontAwesome5 name="history" size={size} color={color} />,
@@ -40,6 +46,8 @@ export function NavBar() {
       <Tab.Screen
         name="MileStonePage"
         component={MileStoneScreen}
+        // passing the userId to the page
+        initialParams={{ userId }}
         options={{
           title: "Mile Stones",
           tabBarIcon: ({ color, size }) => <FontAwesome5 name="bullseye" size={size} color={color} />,

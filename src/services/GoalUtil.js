@@ -1,31 +1,50 @@
-import { collection, getDocs, addDoc } from "firebase/firestore";
-import { database } from '../../firebaseConfig';
+import { collection, getDocs, addDoc, where, query } from "firebase/firestore";
+import { database } from "../../firebaseConfig";
 
-export async function SetGoal(goal) {
-    await addDoc(collection(database, "goals"), {
-        id: goal.id,
-        completed: goal.completed,
-        dueDate: goal.dueDate,
-        name: goal.name,
-        startDate: goal.startDate,
-        userID: goal.userID,
-        amountLeft: goal.amountLeft,
-        totalPaid: goal.totalPaid,
-        target: goal.target,
-        percentage: goal.percentage,
-    });
+export async function SetGoal(goal, userId) {
+  console.log("userid: ", userId);
+
+  const docRef = await addDoc(collection(database, "goals"), {
+    completed: goal.completed ?? false,
+    dueDate: goal.dueDate,
+    name: goal.name,
+    startDate: goal.startDate,
+    userID: userId,
+    amountLeft: goal.amountLeft,
+    totalPaid: goal.totalPaid ?? 0,
+    target: goal.target,
+    percentage: goal.percentage ?? 0,
+  });
+
+  return {
+    id: docRef.id,
+    completed: goal.completed ?? false,
+    dueDate: goal.dueDate,
+    name: goal.name,
+    startDate: goal.startDate,
+    userID: userId,
+    amountLeft: goal.amountLeft,
+    totalPaid: goal.totalPaid ?? 0,
+    target: goal.target,
+    percentage: goal.percentage ?? 0,
+  };
 }
 
-export async function GetGoals() {
-    const query = await getDocs(collection(database, "goals"));
+export async function GetGoals(userId) {
+  // Creates a Firestore query.
+  // collection(database, "goals") points to the "goals" collection in Firestore.
+  const queryStatement = query(collection(database, "goals"), where("userID", "==", userId));
 
-    const goals = query
-        ? query.docs.map((doc) => ({
-            // get the reference id. add to specific goal
-            id: doc.id,
-            ...doc.data(),
-        }))
-        : [];
+  // Sends the query to Firestore and waits for the result.
+  const queryCall = await getDocs(queryStatement);
 
-    return goals;
+  // Converts the Firestore documents into normal JavaScript objects.
+  // queryCall.docs is an array of all documents returned by the query.
+  return queryCall.docs.map((goalDoc) => ({
+    //id of the document
+    id: goalDoc.id,
+    // goalDoc.data() contains all the fields saved inside the Firestore document,
+    // The spread operator (...) copies all those fields into this object.
+    ...goalDoc.data(),
+  }));
 }
