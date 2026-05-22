@@ -1,6 +1,8 @@
 import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform } from "react-native";
 import { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { SetGoal } from "../../services/GoalUtil";
+
 import * as Crypto from "expo-crypto";
 
 export function NewGoalModal({ visible, onClose, onCreateGoal }) {
@@ -11,7 +13,7 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
   const [datePickerValue, setDatePickerValue] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  function createGoal() {
+  async function createGoal() {
     const cleanedName = goalName.trim();
     const targetNumber = Number(targetAmount);
 
@@ -42,6 +44,8 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
       target: targetNumber,
       percentage: 0,
     };
+
+    SetGoal(newGoal)
 
     onCreateGoal(newGoal);
 
