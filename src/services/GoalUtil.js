@@ -19,12 +19,13 @@ export async function SetGoal(goal) {
 export async function GetGoals() {
     const query = await getDocs(collection(database, "goals"));
 
-    const startGoals = query
+    const goals = query
         ? query.docs.map((doc) => ({
+            // get the reference id. add to specific goal
             id: doc.id,
             ...doc.data(),
         }))
         : [];
 
-    return startGoals;
+    return goals;
 }

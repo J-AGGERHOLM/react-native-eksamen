@@ -6,44 +6,50 @@ import {
   Pressable,
 } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
-
-const goals = [
-  {
-    id: "1",
-    name: "New MacBook Pro",
-  },
-  {
-    id: "2",
-    name: "Summer Vacation",
-  },
-  {
-    id: "3",
-    name: "Emergency Fund",
-  },
-];
+import { GetGoals } from "../services/GoalUtil";
+import { useEffect, useState } from "react";
 
 const transactions = [
   {
     id: "1",
     amount: 900,
     date: "2026-04-25T02:00:00",
-    goalId: "3",
+    goalId: "KMXQQuyg8iHV3gTHXWMH",
   },
   {
     id: "2",
     amount: 340,
     date: "2026-04-20T02:00:00",
-    goalId: "2",
+    goalId: "KMXQQuyg8iHV3gTHXWMH",
   },
   {
     id: "3",
     amount: 200,
     date: "2026-04-15T02:00:00",
-    goalId: "1",
+    goalId: "KMXQQuyg8iHV3gTHXWMH",
   },
 ];
 
 export function HistoryScreen() {
+  const [goals, setGoals] = useState([]);
+  
+  console.log("HistoryScreen render");
+
+  useEffect(() => {
+    async function loadGoals(){
+      try{
+        console.log("Load goal");
+        const goals = await GetGoals();
+        console.log("useeffect goals:", JSON.stringify(goals, null, 2));
+        setGoals(goals);
+        console.log("load done")
+      } catch(err){
+        console.log("Could not load goals: " + err);
+      }
+    }
+    loadGoals();
+  }, []);
+  
   // totalContributed = Samlet overføresler.
   const totalContributed = transactions.reduce((total, transaction) => {
     return total + transaction.amount;
@@ -97,6 +103,7 @@ export function HistoryScreen() {
               <TransactionCard
                 key={transaction.id}
                 transaction={transaction}
+                goals={goals}
               />
             ))}
           </View>
@@ -106,7 +113,7 @@ export function HistoryScreen() {
   );
 }
 
-function TransactionCard({ transaction }) {
+function TransactionCard({ transaction, goals }) {
   // Finder navn på transaction.
   const goal = goals.find(goal => goal.id === transaction.goalId);
   const goalName = goal ? goal.name : "Unknown goal";
