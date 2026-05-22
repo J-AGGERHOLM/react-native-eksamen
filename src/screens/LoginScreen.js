@@ -1,9 +1,30 @@
 import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
+import { useState } from "react";
 import { LogInContainer } from "../components/layout/LogInContainer";
 import { useNavigation } from "@react-navigation/native";
+import { auth } from "../../firebaseConfig";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 
 export function LoginPage() {
   const navigation = useNavigation();
+
+  const [enteredEmail, setEnteredEmail] = useState("");
+  const [enteredPassword, setEnteredPassword] = useState("");
+
+  async function login() {
+    try {
+      console.log("Email being sent:", enteredEmail.trim());
+      console.log("Password length:", enteredPassword.length);
+      console.log("Firebase project:", auth.app.options.projectId);
+
+      const credentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
+
+      console.log("Logged in as:", credentials.user.uid);
+      navigation.navigate("MainTabs");
+    } catch (error) {
+      console.log("Login error:", error);
+    }
+  }
 
   return (
     <LogInContainer>
@@ -31,6 +52,9 @@ export function LoginPage() {
             placeholderTextColor="#aaa"
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect="false"
+            value={enteredEmail}
+            onChangeText={setEnteredEmail}
           />
         </View>
 
@@ -41,11 +65,20 @@ export function LoginPage() {
               <Text style={styles.forgot}>Forgot?</Text>
             </Pressable>
           </View>
-          <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor="#aaa" secureTextEntry />
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            placeholderTextColor="#aaa"
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect="false"
+            value={enteredPassword}
+            onChangeText={setEnteredPassword}
+          />
         </View>
 
-        <Pressable style={styles.signInButton} onPress={() => navigation.navigate("MainTabs")}>
-          <Text style={styles.signInText}>Sign in →</Text>
+        <Pressable style={styles.signInButton} onPress={login}>
+          <Text style={styles.signInText}>Sign in</Text>
         </Pressable>
       </View>
 
