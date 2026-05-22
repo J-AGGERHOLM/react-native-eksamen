@@ -13,8 +13,8 @@ export function HomeScreen() {
   useEffect(() => {
     async function loadGoals(){
       try{
-        const data = await GetGoals();
-        setGoals(data);
+        const goals = await GetGoals();
+        setGoals(goals);
       } catch(err){
         console.log("Could not load goals: " + err);
       }
