@@ -1,52 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 import { NewGoalModal } from "../components/modals/NewGoalModal";
-
-const startGoals = [
-  {
-    id: "1",
-    completed: false,
-    dueDate: new Date("2026-08-13T10:30:00"),
-    name: "New MacBook Pro",
-    startDate: new Date(),
-    userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
-    amountLeft: 1999,
-    totalPaid: 500,
-    target: 2499,
-    percentage: 20,
-  },
-  {
-    id: "2",
-    completed: false,
-    dueDate: new Date("2026-09-01T12:00:00"),
-    name: "Summer Vacation",
-    startDate: new Date(),
-    userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
-    amountLeft: 2800,
-    totalPaid: 700,
-    target: 3500,
-    percentage: 20,
-  },
-  {
-    id: "3",
-    completed: false,
-    dueDate: new Date("2026-12-31T18:00:00"),
-    name: "Emergency Fund",
-    startDate: new Date(),
-    userID: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
-    amountLeft: 7500,
-    totalPaid: 2500,
-    target: 10000,
-    percentage: 25,
-  },
-];
+import { GetGoals } from '../services/GoalUtil';
 
 export function HomeScreen() {
   const navigation = useNavigation();
 
-  const [goals, setGoals] = useState(startGoals);
+  const [goals, setGoals] = useState([]);
+
+  useEffect(() => {
+    async function loadGoals(){
+      try{
+        const data = await GetGoals();
+        setGoals(data);
+      } catch(err){
+        console.log("Could not load goals: " + err);
+      }
+    }
+
+    loadGoals();
+  }, []);
+
   const [modalVisible, setModalVisible] = useState(false);
 
   function addGoal(newGoal) {
@@ -56,17 +32,25 @@ export function HomeScreen() {
   return (
     <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        {/*
+            Top view of page. Box of summary of total goals.
+        */}
         <SavingsSummaryCard goals={goals} />
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Goals</Text>
-
+          {/*
+              Show modual on press.
+          */}
           <Pressable style={styles.newGoalButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.newGoalButtonText}>+ New Goal</Text>
           </Pressable>
         </View>
-
+        {/* List all goals. */}
         <View style={styles.goalList}>
+          {/* filter only show completed.
+              maps value to function goalCard method for the show specific goal.
+          */}
           {goals
             .filter((goal) => !goal.completed)
             .map((goal) => (
@@ -91,6 +75,7 @@ export function HomeScreen() {
   );
 }
 
+// Top view of page
 function SavingsSummaryCard({ goals }) {
   const { totalPaid, totalAmount } = totalSavings(goals);
   return (
@@ -108,18 +93,7 @@ function SavingsSummaryCard({ goals }) {
   );
 }
 
-function totalSavings(goals) {
-  let totalPaid = 0;
-  let totalAmount = 0;
-
-  goals.map((goal) => {
-    totalPaid += goal.totalPaid;
-    totalAmount += goal.target;
-  });
-
-  return { totalPaid, totalAmount };
-}
-
+// A view for showing a specific goal
 function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress }) {
   return (
     <Pressable onPress={onPress} style={styles.goalCard}>
@@ -139,6 +113,18 @@ function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress })
       </View>
     </Pressable>
   );
+}
+
+function totalSavings(goals) {
+  let totalPaid = 0;
+  let totalAmount = 0;
+
+  goals.map((goal) => {
+    totalPaid += goal.totalPaid;
+    totalAmount += goal.target;
+  });
+
+  return { totalPaid, totalAmount };
 }
 
 const styles = StyleSheet.create({

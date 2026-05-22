@@ -25,10 +25,10 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
       return;
     }
 
-    if (dueDate.length === 0) {
+    /*if (dueDate.length === 0) {
       alert("Please select a due date");
       return;
-    }
+    }*/
 
     const newGoal = {
       id: Crypto.randomUUID(),
