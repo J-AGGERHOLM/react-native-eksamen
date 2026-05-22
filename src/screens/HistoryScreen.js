@@ -8,48 +8,27 @@ import {
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { GetGoals } from "../services/GoalUtil";
 import { useEffect, useState } from "react";
-
-const transactions = [
-  {
-    id: "1",
-    amount: 900,
-    date: "2026-04-25T02:00:00",
-    goalId: "KMXQQuyg8iHV3gTHXWMH",
-  },
-  {
-    id: "2",
-    amount: 340,
-    date: "2026-04-20T02:00:00",
-    goalId: "KMXQQuyg8iHV3gTHXWMH",
-  },
-  {
-    id: "3",
-    amount: 200,
-    date: "2026-04-15T02:00:00",
-    goalId: "KMXQQuyg8iHV3gTHXWMH",
-  },
-];
+import { GetTransactions } from "../services/TransactionUtil";
 
 export function HistoryScreen() {
   const [goals, setGoals] = useState([]);
-  
-  console.log("HistoryScreen render");
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    async function loadGoals(){
-      try{
-        console.log("Load goal");
+    async function loadGoals() {
+      try {
         const goals = await GetGoals();
-        console.log("useeffect goals:", JSON.stringify(goals, null, 2));
         setGoals(goals);
-        console.log("load done")
-      } catch(err){
+
+        const transactions = await GetTransactions();
+        setTransactions(transactions)
+      } catch (err) {
         console.log("Could not load goals: " + err);
       }
     }
     loadGoals();
   }, []);
-  
+
   // totalContributed = Samlet overføresler.
   const totalContributed = transactions.reduce((total, transaction) => {
     return total + transaction.amount;
@@ -94,7 +73,7 @@ export function HistoryScreen() {
         */}
         {Object.keys(groupedTransactions).map(dateKey => (
           <View key={dateKey} style={styles.dateGroup}>
-            <Text style={styles.dateTitle}>{formatDateLabel(dateKey)}</Text>
+            <Text style={styles.dateTitle}>{dateKey}</Text>
             {/* 
                 Looper igennem alle transactioner for den specifikke dato
                 key={transaction.id} er til for at react kan kende forskel på elementerne. 
@@ -115,7 +94,7 @@ export function HistoryScreen() {
 
 function TransactionCard({ transaction, goals }) {
   // Finder navn på transaction.
-  const goal = goals.find(goal => goal.id === transaction.goalId);
+  const goal = goals.find(goal => goal.id === transaction.goalID);
   const goalName = goal ? goal.name : "Unknown goal";
 
   // Laver view for specifik transaction
@@ -124,7 +103,7 @@ function TransactionCard({ transaction, goals }) {
       <View>
         <Text style={styles.transactionGoal}>{goalName}</Text>
         <Text style={styles.transactionTime}>
-          {transaction.date}
+          {formatTime(transaction.date)}
         </Text>
       </View>
 
@@ -137,8 +116,8 @@ function TransactionCard({ transaction, goals }) {
 
 function groupTransactionsByDate(transactions) {
   return transactions.reduce((groups, transaction) => {
-    // Henter kun dato
-    const dateKey = transaction.date.split("T")[0];
+
+    const dateKey = formatTime(transaction.date);
 
     // Hvis dato ikke eksistere
     if (!groups[dateKey]) {
@@ -152,10 +131,16 @@ function groupTransactionsByDate(transactions) {
   }, {});
 }
 
-function formatDateLabel(dateString) {
-  const date = new Date(dateString);
+// Firestone viser en dato normalt. Men når man henter ind, skrives det i date objekt
+// som har følgende værdier: seconds og nanoseconds. Man skal konventere det til date.
+function formatTime(timestamp) {
+  if (!timestamp) {
+    return "";
+  }
 
-  // long = skriver teksten helt ud
+  // Converts timestamp object to date.
+  const date = new Date(timestamp.seconds * 1000);
+
   return date.toLocaleDateString("da-DK", {
     weekday: "long",
     month: "long",
