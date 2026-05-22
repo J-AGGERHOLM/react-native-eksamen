@@ -103,7 +103,7 @@ function TransactionCard({ transaction, goals }) {
       <View>
         <Text style={styles.transactionGoal}>{goalName}</Text>
         <Text style={styles.transactionTime}>
-          {formatTransactionTime(transaction.date)}
+          {formatTime(transaction.date)}
         </Text>
       </View>
 
@@ -117,7 +117,7 @@ function TransactionCard({ transaction, goals }) {
 function groupTransactionsByDate(transactions) {
   return transactions.reduce((groups, transaction) => {
 
-    const dateKey = formatTransactionTime(transaction.date);
+    const dateKey = formatTime(transaction.date);
 
     // Hvis dato ikke eksistere
     if (!groups[dateKey]) {
@@ -133,7 +133,7 @@ function groupTransactionsByDate(transactions) {
 
 // Firestone viser en dato normalt. Men når man henter ind, skrives det i date objekt
 // som har følgende værdier: seconds og nanoseconds. Man skal konventere det til date.
-function formatTransactionTime(timestamp) {
+function formatTime(timestamp) {
   if (!timestamp) {
     return "";
   }
