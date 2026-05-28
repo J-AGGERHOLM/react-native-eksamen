@@ -4,7 +4,9 @@ import { LogInContainer } from "../components/layout/LogInContainer";
 import { useNavigation } from "@react-navigation/native";
 /* use initialized auth from firebase config*/
 import { auth } from "../../firebaseConfig";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { biometricLogin, enableBiometricsForUser } from "../utils/biometricLogIn";
 
 export function LoginPage() {
   const navigation = useNavigation();
@@ -24,6 +26,9 @@ export function LoginPage() {
       auth: the initialized Firebase Auth instance from firebaseConfig */
       const credentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
 
+      // Save this Firebase user as the user connected to biometric login
+      await enableBiometricsForUser(credentials.user.uid);
+
       console.log("Logged in as:", credentials.user.uid);
       /* on succes navigate to MainTabs, and pass the userId as a JSON object */
       navigation.navigate("MainTabs", { userId: credentials.user.uid });
@@ -36,13 +41,20 @@ export function LoginPage() {
     navigation.navigate("SignUpPage");
   }
 
+  async function handleBiometricLogin() {
+    const result = await biometricLogin();
+
+    if (result.success) {
+      navigation.navigate("MainTabs");
+    } else {
+      console.log("Biometric login failed:", result);
+    }
+  }
+
   return (
     <LogInContainer>
       {/* Logo + brand */}
       <View style={styles.logoRow}>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🪙</Text>
-        </View>
         <Text style={styles.brandName}>Vaultly</Text>
       </View>
 
@@ -91,6 +103,9 @@ export function LoginPage() {
           <Text style={styles.signInText}>Sign in</Text>
         </Pressable>
       </View>
+      <Pressable style={styles.biometricsButton} onPress={handleBiometricLogin}>
+        <MaterialIcons name="fingerprint" size={28} color="#2563eb" />
+      </Pressable>
 
       {/* Divider */}
       <View style={styles.dividerRow}>
@@ -219,5 +234,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#2563eb",
     fontWeight: "600",
+  },
+  biometricsButton: {
+    height: 52,
+    width: 52,
+    borderRadius: 26,
+    backgroundColor: "#f3f4f6",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: 24,
   },
 });
