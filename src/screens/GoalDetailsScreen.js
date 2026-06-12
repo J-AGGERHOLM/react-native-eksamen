@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { SetTransactions, GetTransactionsByGoalID  } from "../services/TransactionUtil";
 import { CalculateAmountLeft } from "../utils/calculateRemainingSum";
 import { CalculatePercentage } from "../utils/calculatePercentComplete";
+import { CalculateProjections } from "../utils/calculateProjection";
 
 export function GoalDetailsScreen({ route }) {
   const navigation = useNavigation();
@@ -38,6 +39,7 @@ export function GoalDetailsScreen({ route }) {
 
   const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
   const percentage = CalculatePercentage(goal.target, totalPaid);
+  const projections = CalculateProjections(goal.target, totalPaid);
 
   async function addMoney(amount) {
       if(!goal.id) {
@@ -107,29 +109,19 @@ export function GoalDetailsScreen({ route }) {
         </View>
 
         <View style={styles.projectionCard}>
-          <Text style={styles.sectionTitle}>Transactions</Text>
+          <Text style={styles.sectionTitle}>Smart Projections</Text>
 
           <View style={styles.projectionList}>
-            {transactions.length === 0 ? (
-              <Text style={styles.emptyText}>No transactions yet</Text>
-            ) : (
-              transactions.map((transaction) => (
-                <View style={styles.projectionItem} key={transaction.id}>
-                  <View>
-                    <Text style={styles.projectionTitle}>
-                      Added {formatMoney(transaction.amount)}
-                    </Text>
-                    <Text style={styles.projectionWeeks}>
-                      {formatTime(transaction.date)}
-                    </Text>
-                  </View>
-
-                  <Text style={styles.projectionDate}>
-                    {formatDate(transaction.date)}
-                  </Text>
+            {projections.map((item) => (
+              <View style={styles.projectionItem} key={item.id}>
+                <View>
+                  <Text style={styles.projectionTitle}>{item.title}</Text>
+                  <Text style={styles.projectionWeeks}>{item.weeks}</Text>
                 </View>
-              ))
-            )}
+
+                <Text style={styles.projectionDate}>{item.date}</Text>
+              </View>
+            ))}
           </View>
         </View>
       </View>

@@ -1,5 +1,7 @@
-function calculateProjections(goal) {
-  const amountLeft = calculateAmountLeft(goal);
+import { CalculateAmountLeft } from "./calculateRemainingSum";
+
+export function CalculateProjections(target, totalPaid) {
+  const amountLeft = CalculateAmountLeft(target, totalPaid);
 
   const weeklyAmounts = [50, 100, 200];
 
@@ -13,5 +15,27 @@ function calculateProjections(goal) {
       weeks: `${weeksNeeded} ${weeksNeeded === 1 ? "week" : "weeks"}`,
       date: formatDate(completionDate),
     };
+  });
+}
+
+function calculateCompletionDate(weeksNeeded) {
+  const completionDate = new Date();
+
+  completionDate.setDate(completionDate.getDate() + weeksNeeded * 7);
+
+  return completionDate;
+}
+
+function formatMoney(amount) {
+  return `$${Number(amount).toLocaleString()}`;
+}
+
+function formatDate(dateValue) {
+  const date = new Date(dateValue);
+
+  return date.toLocaleDateString("da-DK", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }
