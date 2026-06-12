@@ -1,4 +1,22 @@
-import { CalculateAmountLeft } from "./calculateRemainingSum";
+export function CalculatePercentage(target, totalPaid) {
+  const targetNumber = Number(target);
+  const totalPaidNumber = Number(totalPaid);
+
+  if (targetNumber <= 0) {
+    return 0;
+  }
+
+  const percentage = Math.round((totalPaidNumber / targetNumber) * 100);
+
+  return Math.min(percentage, 100);
+}
+
+export function CalculateAmountLeft(target, totalPaid) {
+  const targetNumber = Number(target);
+  const totalPaidNumber = Number(totalPaid);
+
+  return Math.max(targetNumber - totalPaidNumber, 0);
+}
 
 export function CalculateProjections(target, totalPaid) {
   const amountLeft = CalculateAmountLeft(target, totalPaid);
@@ -38,4 +56,10 @@ function formatDate(dateValue) {
     month: "short",
     year: "numeric",
   });
+}
+
+export function CalculateTotalPaid(transactions = []) {
+  return transactions.reduce((total, transaction) => {
+    return total + Number(transaction.amount);
+  }, 0);
 }

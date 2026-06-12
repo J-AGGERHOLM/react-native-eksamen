@@ -5,9 +5,11 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { AddMoneyModal } from "../components/modals/AddMoneyModal";
 import { useState, useEffect } from "react";
 import { SetTransactions, GetTransactionsByGoalID  } from "../services/TransactionUtil";
-import { CalculateAmountLeft } from "../utils/calculateRemainingSum";
-import { CalculatePercentage } from "../utils/calculatePercentComplete";
-import { CalculateProjections } from "../utils/calculateProjection";
+import { CalculateAmountLeft, 
+  CalculatePercentage, 
+  CalculateProjections, 
+  CalculateTotalPaid 
+} from "../utils/calculator";
 
 export function GoalDetailsScreen({ route }) {
   const navigation = useNavigation();
@@ -33,10 +35,7 @@ export function GoalDetailsScreen({ route }) {
     loadTransactions();
   }, [goal.id]);
 
-  const totalPaid = transactions.reduce((total, transaction) => {
-    return total + Number(transaction.amount);
-  }, 0);
-
+  const totalPaid = CalculateTotalPaid(transactions);
   const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
   const percentage = CalculatePercentage(goal.target, totalPaid);
   const projections = CalculateProjections(goal.target, totalPaid);

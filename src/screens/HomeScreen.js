@@ -4,13 +4,16 @@ import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 import { NewGoalModal } from "../components/modals/NewGoalModal";
 import { GetGoals, SetGoal } from "../services/GoalUtil";
+import { GetTransactions } from "../services/TransactionUtil";
+import { CalculateTotalPaid, CalculateAmountLeft, CalculatePercentage } from "../utils/calculator";
 
 export function HomeScreen({ route }) {
   const userId = route.params?.userId;
-  console.log("homeScreen userId: ", userId);
   const navigation = useNavigation();
-
+  
+  const [modalVisible, setModalVisible] = useState(false);
   const [goals, setGoals] = useState([]);
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     async function loadGoals() {
@@ -19,8 +22,14 @@ export function HomeScreen({ route }) {
           console.log("no userId found");
           return;
         }
+
         const goals = await GetGoals(userId);
+        const goalIds = goals.map((goal) => goal.id);
+        const transactions = await GetTransactions(goalIds);
+        
         setGoals(goals);
+        setTransactions(transactions);
+
       } catch (err) {
         console.log("Could not load goals: " + err);
       }
@@ -29,7 +38,6 @@ export function HomeScreen({ route }) {
     loadGoals();
   }, [userId]);
 
-  const [modalVisible, setModalVisible] = useState(false);
 
   async function addGoal(newGoal) {
     try {
@@ -39,12 +47,29 @@ export function HomeScreen({ route }) {
       }
 
       const savedGoal = await SetGoal(newGoal, userId);
-
       setGoals((currentGoals) => [...currentGoals, savedGoal]);
+
     } catch (err) {
       console.log("Could not create goal: " + err);
     }
   }
+
+  const goalsWithProgress = goals.map((goal) => {
+    const goalTransactions = transactions.filter((transaction) => {
+      return transaction.goalID === goal.id;
+    });
+
+    const totalPaid = CalculateTotalPaid(goalTransactions);
+    const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
+    const percentage = CalculatePercentage(goal.target, totalPaid);
+
+    return {
+      ...goal,
+      totalPaid,
+      amountLeft,
+      percentage,
+    };
+  });
 
   return (
     <ScreenContainer>
@@ -52,7 +77,7 @@ export function HomeScreen({ route }) {
         {/*
             Top view of page. Box of summary of total goals.
         */}
-        <SavingsSummaryCard goals={goals} />
+        <SavingsSummaryCard goals={goalsWithProgress} />
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Goals</Text>
@@ -68,7 +93,7 @@ export function HomeScreen({ route }) {
           {/* filter only show completed.
               maps value to function goalCard method for the show specific goal.
           */}
-          {goals
+          {goalsWithProgress
             .filter((goal) => !goal.completed)
             .map((goal) => (
               <GoalCard
@@ -95,15 +120,24 @@ export function HomeScreen({ route }) {
 // Top view of page
 function SavingsSummaryCard({ goals }) {
   const { totalPaid, totalAmount } = totalSavings(goals);
+
+  const remaining = CalculateAmountLeft(totalAmount, totalPaid);
+  const percentage = CalculatePercentage(totalAmount, totalPaid);
+
   return (
     <View style={styles.summaryCard}>
       <View>
         <Text style={styles.summaryLabel}>Total Savings</Text>
-        <Text style={styles.summaryAmount}>${totalPaid}</Text>
+        <Text style={styles.summaryAmount}>{formatMoney(totalPaid)}</Text>
 
         <View style={styles.summaryFooter}>
-          <Text style={styles.summaryFooterText}>Target: ${totalAmount}</Text>
-          <Text style={styles.summaryFooterText}>{goals.filter((goal) => !goal.completed).length} active goals</Text>
+          <Text style={styles.summaryFooterText}>
+            {percentage}% complete
+          </Text>
+
+          <Text style={styles.summaryFooterText}>
+            {formatMoney(remaining)} remaining
+          </Text>
         </View>
       </View>
     </View>
@@ -117,7 +151,7 @@ function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress })
       <Text style={styles.goalTitle}>{title}</Text>
 
       <Text style={styles.goalAmount}>
-        {totalPaid} of {target}
+        {formatMoney(totalPaid)} of {formatMoney(target)}
       </Text>
 
       <View style={styles.progressTrack}>
@@ -126,22 +160,30 @@ function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress })
 
       <View style={styles.goalFooter}>
         <Text style={styles.goalFooterText}>{percentage}% complete</Text>
-        <Text style={styles.remainingText}>{amountLeft} to go</Text>
+        <Text style={styles.remainingText}>{formatMoney(amountLeft)} to go</Text>
       </View>
     </Pressable>
   );
 }
 
 function totalSavings(goals) {
-  let totalPaid = 0;
-  let totalAmount = 0;
+  return goals.reduce(
+    (totals, goal) => {
+      totals.totalPaid += Number(goal.totalPaid);
+      totals.totalAmount += Number(goal.target);
 
-  goals.map((goal) => {
-    totalPaid += goal.totalPaid;
-    totalAmount += goal.target;
-  });
+      return totals;
+    },
+    // If goal is empty
+    {
+      totalPaid: 0,
+      totalAmount: 0,
+    }
+  );
+}
 
-  return { totalPaid, totalAmount };
+function formatMoney(amount) {
+  return `$${Number(amount).toLocaleString()}`;
 }
 
 const styles = StyleSheet.create({
