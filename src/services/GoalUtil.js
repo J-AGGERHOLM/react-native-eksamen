@@ -1,9 +1,9 @@
 import { collection, getDocs, addDoc, where, query } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
 
+// Saves a new goal in Firestore.
 export async function SetGoal(goal, userId) {
-  console.log("userid: ", userId);
-
+  // Adds the goal to the goals collection.
   const docRef = await addDoc(collection(database, "goals"), {
     completed: goal.completed ?? false,
     dueDate: goal.dueDate,
@@ -16,6 +16,7 @@ export async function SetGoal(goal, userId) {
     percentage: goal.percentage ?? 0,
   });
 
+  // Returns the saved goal with its Firestore id.
   return {
     id: docRef.id,
     completed: goal.completed ?? false,
