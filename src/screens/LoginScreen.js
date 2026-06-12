@@ -6,7 +6,8 @@ import { useNavigation } from "@react-navigation/native";
 import { auth } from "../../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { biometricLogin, enableBiometricsForUser } from "../utils/biometricLogIn";
+import { biometricLogin } from "../utils/biometricLogIn";
+import { isBiometricLoginEnabled, enableBiometricsForUser, getBiometricUserId } from "../utils/biometricsStorage";
 
 export function LoginPage() {
   const navigation = useNavigation();
@@ -26,12 +27,13 @@ export function LoginPage() {
       auth: the initialized Firebase Auth instance from firebaseConfig */
       const credentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
 
-      // Save this Firebase user as the user connected to biometric login
-      await enableBiometricsForUser(credentials.user.uid);
+      // Save this Firebase user as the user connected to biometric login using the SecureStore package.
+      const userId = credentials.user.uid;
+      await enableBiometricsForUser(userId);
 
-      console.log("Logged in as:", credentials.user.uid);
+      console.log("Logged in as:", userId);
       /* on succes navigate to MainTabs, and pass the userId as a JSON object */
-      navigation.navigate("MainTabs", { userId: credentials.user.uid });
+      navigation.navigate("MainTabs", { userId });
     } catch (error) {
       console.log("Login error:", error);
     }
@@ -42,14 +44,28 @@ export function LoginPage() {
   }
 
   async function handleBiometricLogin() {
+    //checks to see if we have stored data for the biometric scan:
+    const isEnabled = await isBiometricLoginEnabled();
+    if (!isEnabled) {
+      Alert.alert("User data not stored", "Please log-in the first time using your credentials, to enable biometrics.");
+      return;
+    }
+
     const result = await biometricLogin();
     //json object is returned from function, and alets the user how the biometric log-in went.
-    if (result.success) {
-      Alert.alert("Login successful", "Biometric authentication succeeded.");
-      navigation.navigate("MainTabs");
-    } else {
+    if (!result.success) {
       Alert.alert("Biometric login failed", result.message || "Could not authenticate with biometrics.");
+      return;
     }
+
+    const userId = await getBiometricUserId();
+
+    if (!userId) {
+      Alert.alert("Login failed", "Log in with credentials first.");
+      return;
+    }
+
+    navigation.navigate("MainTabs", { userId });
   }
 
   return (
