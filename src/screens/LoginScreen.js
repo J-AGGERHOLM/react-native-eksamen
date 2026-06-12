@@ -1,10 +1,13 @@
-import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
+import { View, Text, Pressable, StyleSheet, TextInput, Alert } from "react-native";
 import { useState } from "react";
 import { LogInContainer } from "../components/layout/LogInContainer";
 import { useNavigation } from "@react-navigation/native";
 /* use initialized auth from firebase config*/
 import { auth } from "../../firebaseConfig";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { biometricLogin } from "../utils/biometricLogIn";
+import { isBiometricLoginEnabled, enableBiometricsForUser, getBiometricUserId } from "../utils/biometricsStorage";
 
 export function LoginPage() {
   const navigation = useNavigation();
@@ -24,9 +27,13 @@ export function LoginPage() {
       auth: the initialized Firebase Auth instance from firebaseConfig */
       const credentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
 
-      console.log("Logged in as:", credentials.user.uid);
+      // Save this Firebase user as the user connected to biometric login using the SecureStore package.
+      const userId = credentials.user.uid;
+      await enableBiometricsForUser(userId);
+
+      console.log("Logged in as:", userId);
       /* on succes navigate to MainTabs, and pass the userId as a JSON object */
-      navigation.navigate("MainTabs", { userId: credentials.user.uid });
+      navigation.navigate("MainTabs", { userId });
     } catch (error) {
       console.log("Login error:", error);
     }
@@ -36,13 +43,35 @@ export function LoginPage() {
     navigation.navigate("SignUpPage");
   }
 
+  async function handleBiometricLogin() {
+    //checks to see if we have stored data for the biometric scan:
+    const isEnabled = await isBiometricLoginEnabled();
+    if (!isEnabled) {
+      Alert.alert("User data not stored", "Please log-in the first time using your credentials, to enable biometrics.");
+      return;
+    }
+
+    const result = await biometricLogin();
+    //json object is returned from function, and alets the user how the biometric log-in went.
+    if (!result.success) {
+      Alert.alert("Biometric login failed", result.message || "Could not authenticate with biometrics.");
+      return;
+    }
+
+    const userId = await getBiometricUserId();
+
+    if (!userId) {
+      Alert.alert("Login failed", "Log in with credentials first.");
+      return;
+    }
+
+    navigation.navigate("MainTabs", { userId });
+  }
+
   return (
     <LogInContainer>
       {/* Logo + brand */}
       <View style={styles.logoRow}>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoIcon}>🪙</Text>
-        </View>
         <Text style={styles.brandName}>Vaultly</Text>
       </View>
 
@@ -91,6 +120,9 @@ export function LoginPage() {
           <Text style={styles.signInText}>Sign in</Text>
         </Pressable>
       </View>
+      <Pressable style={styles.biometricsButton} hitSlop={20} onPress={handleBiometricLogin}>
+        <MaterialIcons name="fingerprint" size={28} color="#2563eb" />
+      </Pressable>
 
       {/* Divider */}
       <View style={styles.dividerRow}>
@@ -219,5 +251,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#2563eb",
     fontWeight: "600",
+  },
+  biometricsButton: {
+    height: 52,
+    width: 52,
+    borderRadius: 26,
+    backgroundColor: "#f3f4f6",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: 24,
   },
 });
