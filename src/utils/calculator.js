@@ -1,3 +1,5 @@
+import { formatMoney, formatDate } from "./format";
+
 // Calculates how much of the target has been reached in percent.
 export function CalculatePercentage(target, totalPaid) {
   // Converts the target value to a number.
@@ -63,25 +65,6 @@ function calculateCompletionDate(weeksNeeded) {
 
   // Returns the calculated date.
   return completionDate;
-}
-
-// Formats a number as money.
-function formatMoney(amount) {
-  // Converts amount to number and formats it with a dollar sign.
-  return `$${Number(amount).toLocaleString()}`;
-}
-
-// Formats a date for display.
-function formatDate(dateValue) {
-  // Converts the value to a JavaScript Date.
-  const date = new Date(dateValue);
-
-  // Returns a short formatted date.
-  return date.toLocaleDateString("da-DK", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 // Calculates the total paid amount from transactions.
