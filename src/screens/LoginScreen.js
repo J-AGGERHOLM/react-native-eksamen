@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
+import { View, Text, Pressable, StyleSheet, TextInput, Alert } from "react-native";
 import { useState } from "react";
 import { LogInContainer } from "../components/layout/LogInContainer";
 import { useNavigation } from "@react-navigation/native";
@@ -43,11 +43,12 @@ export function LoginPage() {
 
   async function handleBiometricLogin() {
     const result = await biometricLogin();
-
+    //json object is returned from function, and alets the user how the biometric log-in went.
     if (result.success) {
+      Alert.alert("Login successful", "Biometric authentication succeeded.");
       navigation.navigate("MainTabs");
     } else {
-      console.log("Biometric login failed:", result);
+      Alert.alert("Biometric login failed", result.message || "Could not authenticate with biometrics.");
     }
   }
 
@@ -103,7 +104,7 @@ export function LoginPage() {
           <Text style={styles.signInText}>Sign in</Text>
         </Pressable>
       </View>
-      <Pressable style={styles.biometricsButton} onPress={handleBiometricLogin}>
+      <Pressable style={styles.biometricsButton} hitSlop={20} onPress={handleBiometricLogin}>
         <MaterialIcons name="fingerprint" size={28} color="#2563eb" />
       </Pressable>
 
