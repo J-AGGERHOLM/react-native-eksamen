@@ -1,18 +1,20 @@
-import { collection, getDocs } from "firebase/firestore";
-import { database } from '../../firebaseConfig';
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { database } from "../../firebaseConfig";
 
+export async function GetTransactions(goalIds) {
+  if (!goalIds || goalIds.lenght === 0) {
+    return [];
+  }
 
+  const query = await getDocs(collection(database, "transactions"), where("goalID", "in", goalIds));
 
-export async function GetTransactions() {
-    const query = await getDocs(collection(database, "transactions"));
+  const transactions = query
+    ? query.docs.map((doc) => ({
+        // get the reference id. add to specific goal
+        id: doc.id,
+        ...doc.data(),
+      }))
+    : [];
 
-    const transactions = query
-        ? query.docs.map((doc) => ({
-            // get the reference id. add to specific goal
-            id: doc.id,
-            ...doc.data(),
-        }))
-        : [];
-
-    return transactions;
+  return transactions;
 }

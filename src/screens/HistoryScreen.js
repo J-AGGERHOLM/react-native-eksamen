@@ -1,33 +1,38 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { GetGoals } from "../services/GoalUtil";
 import { useEffect, useState } from "react";
 import { GetTransactions } from "../services/TransactionUtil";
 
-export function HistoryScreen() {
+export function HistoryScreen({ route }) {
+  const userId = route.params?.userId;
+
   const [goals, setGoals] = useState([]);
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    async function loadGoals() {
+    async function loadHistoryData() {
       try {
-        const goals = await GetGoals();
-        setGoals(goals);
+        if (!userId) {
+          Alert.alert("No user logged in to fetch data from");
+          return;
+        }
+        const fetchedGoals = await GetGoals(userId);
+        setGoals(fetchedGoals);
 
-        const transactions = await GetTransactions();
-        setTransactions(transactions)
+        const goalIds = fetchedGoals.map((goal) => goal.id);
+
+        const fetchedTransactions = await GetTransactions(goalIds);
+        setTransactions(fetchedTransactions);
+
+        const transactions = await GetTransactions(goalIds);
+        setTransactions(transactions);
       } catch (err) {
         console.log("Could not load goals: " + err);
       }
     }
-    loadGoals();
-  }, []);
+    loadHistoryData();
+  }, [userId]);
 
   // totalContributed = Samlet overføresler.
   const totalContributed = transactions.reduce((total, transaction) => {
@@ -39,21 +44,13 @@ export function HistoryScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.pageTitle}>Transaction History</Text>
 
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Contributed</Text>
-          <Text style={styles.summaryAmount}>
-            {totalContributed}kr
-          </Text>
-          <Text style={styles.summarySubText}>
-            {transactions.length} transactions
-          </Text>
+          <Text style={styles.summaryAmount}>{totalContributed}kr</Text>
+          <Text style={styles.summarySubText}>{transactions.length} transactions</Text>
         </View>
 
         <View style={styles.filterRow}>
@@ -71,19 +68,15 @@ export function HistoryScreen() {
             Bruger Object.keys til at hente dato, som er nøglen i dictionary. 
             Looper igennem alle datoer
         */}
-        {Object.keys(groupedTransactions).map(dateKey => (
+        {Object.keys(groupedTransactions).map((dateKey) => (
           <View key={dateKey} style={styles.dateGroup}>
             <Text style={styles.dateTitle}>{dateKey}</Text>
             {/* 
                 Looper igennem alle transactioner for den specifikke dato
                 key={transaction.id} er til for at react kan kende forskel på elementerne. 
             */}
-            {groupedTransactions[dateKey].map(transaction => (
-              <TransactionCard
-                key={transaction.id}
-                transaction={transaction}
-                goals={goals}
-              />
+            {groupedTransactions[dateKey].map((transaction) => (
+              <TransactionCard key={transaction.id} transaction={transaction} goals={goals} />
             ))}
           </View>
         ))}
@@ -94,7 +87,7 @@ export function HistoryScreen() {
 
 function TransactionCard({ transaction, goals }) {
   // Finder navn på transaction.
-  const goal = goals.find(goal => goal.id === transaction.goalID);
+  const goal = goals.find((goal) => goal.id === transaction.goalID);
   const goalName = goal ? goal.name : "Unknown goal";
 
   // Laver view for specifik transaction
@@ -102,21 +95,16 @@ function TransactionCard({ transaction, goals }) {
     <View style={styles.transactionCard}>
       <View>
         <Text style={styles.transactionGoal}>{goalName}</Text>
-        <Text style={styles.transactionTime}>
-          {formatTime(transaction.date)}
-        </Text>
+        <Text style={styles.transactionTime}>{formatTime(transaction.date)}</Text>
       </View>
 
-      <Text style={styles.transactionAmount}>
-        +{transaction.amount}kr
-      </Text>
+      <Text style={styles.transactionAmount}>+{transaction.amount}kr</Text>
     </View>
   );
 }
 
 function groupTransactionsByDate(transactions) {
   return transactions.reduce((groups, transaction) => {
-
     const dateKey = formatTime(transaction.date);
 
     // Hvis dato ikke eksistere
