@@ -9,26 +9,38 @@ import { CalculateTotalPaid, CalculateAmountLeft, CalculatePercentage } from "..
 import { formatMoney } from "../utils/format";
 
 export function HomeScreen({ route }) {
+  // Gets the logged-in user id from navigation params.
   const userId = route.params?.userId;
+  // Gives access to navigation functions.
   const navigation = useNavigation();
-  
+
+  // Controls whether the new goal modal is visible.
   const [modalVisible, setModalVisible] = useState(false);
+  // Stores all goals for the logged-in user.
   const [goals, setGoals] = useState([]);
+  // Stores all goals for the logged-in user.
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
+    // Loads goals and their related transactions.
     async function loadGoals() {
       try {
+        // Stops loading if no user id is available.
         if (!userId) {
           console.log("no userId found");
           return;
         }
 
+        // Fetches all goals for the user.
         const goals = await GetGoals(userId);
+        // Extracts goal ids to fetch matching transactions.
         const goalIds = goals.map((goal) => goal.id);
+        // Fetches transactions connected to the user's goals
         const transactions = await GetTransactions(goalIds);
-        
+
+        // Saves goals in state.
         setGoals(goals);
+        // Saves goals in state.
         setTransactions(transactions);
 
       } catch (err) {
@@ -36,18 +48,22 @@ export function HomeScreen({ route }) {
       }
     }
 
+    // Runs the loading function when the user id changes.
     loadGoals();
   }, [userId]);
 
 
   async function addGoal(newGoal) {
     try {
+      // Stops creation if no user id is available.
       if (!userId) {
         console.log("No userId found");
         return;
       }
 
+      // Saves the new goal in Firestore.
       const savedGoal = await SetGoal(newGoal, userId);
+      // Adds the saved goal to local state.
       setGoals((currentGoals) => [...currentGoals, savedGoal]);
 
     } catch (err) {
@@ -55,15 +71,21 @@ export function HomeScreen({ route }) {
     }
   }
 
+  // Adds calculated progress values to each goal.
   const goalsWithProgress = goals.map((goal) => {
+    // Finds transactions that belong to this goal.
     const goalTransactions = transactions.filter((transaction) => {
       return transaction.goalID === goal.id;
     });
 
+    // Calculates total paid for this goal.
     const totalPaid = CalculateTotalPaid(goalTransactions);
+    // Calculates remaining amount for this goal.
     const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
+    // Calculates progress percentage for this goal.
     const percentage = CalculatePercentage(goal.target, totalPaid);
 
+    // Returns the original goal with calculated values.
     return {
       ...goal,
       totalPaid,
@@ -118,24 +140,49 @@ export function HomeScreen({ route }) {
   );
 }
 
+function totalSavings(goals) {
+  // Sums total paid and total target across all goals.
+  return goals.reduce(
+    (totals, goal) => {
+      // Adds this goal's calculated paid amount.
+      totals.totalPaid += Number(goal.totalPaid);
+      // Adds this goal's target amount.
+      totals.totalAmount += Number(goal.target);
+
+      return totals;
+    },
+    // Initial values used when there are no goals.
+    {
+      totalPaid: 0,
+      totalAmount: 0,
+    }
+  );
+}
+
 // Top view of page
 function SavingsSummaryCard({ goals }) {
+  // Calculates total paid and total target across all goals.
   const { totalPaid, totalAmount } = totalSavings(goals);
 
+  // Calculates remaining amount across all goals.
   const remaining = CalculateAmountLeft(totalAmount, totalPaid);
+  // Calculates remaining amount across all goals.
   const percentage = CalculatePercentage(totalAmount, totalPaid);
 
   return (
     <View style={styles.summaryCard}>
       <View>
+        {/* Displays total saved amount. */}
         <Text style={styles.summaryLabel}>Total Savings</Text>
         <Text style={styles.summaryAmount}>{formatMoney(totalPaid)}</Text>
 
         <View style={styles.summaryFooter}>
+           {/* Displays total progress percentage. */}
           <Text style={styles.summaryFooterText}>
             {percentage}% complete
           </Text>
 
+          {/* Displays remaining amount across all goals. */}
           <Text style={styles.summaryFooterText}>
             {formatMoney(remaining)} remaining
           </Text>
@@ -149,37 +196,26 @@ function SavingsSummaryCard({ goals }) {
 function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress }) {
   return (
     <Pressable onPress={onPress} style={styles.goalCard}>
+      {/* Displays the goal name. */}
       <Text style={styles.goalTitle}>{title}</Text>
 
+      {/* Displays saved amount compared to target. */}
       <Text style={styles.goalAmount}>
         {formatMoney(totalPaid)} of {formatMoney(target)}
       </Text>
 
+       {/* Fills progress bar based on percentage. */}
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${Math.min(percentage, 100)}%` }]} />
       </View>
 
       <View style={styles.goalFooter}>
+        {/* Displays goal progress percentage. */}
         <Text style={styles.goalFooterText}>{percentage}% complete</Text>
+        {/* Displays remaining amount for this goal. */}
         <Text style={styles.remainingText}>{formatMoney(amountLeft)} to go</Text>
       </View>
     </Pressable>
-  );
-}
-
-function totalSavings(goals) {
-  return goals.reduce(
-    (totals, goal) => {
-      totals.totalPaid += Number(goal.totalPaid);
-      totals.totalAmount += Number(goal.target);
-
-      return totals;
-    },
-    // If goal is empty
-    {
-      totalPaid: 0,
-      totalAmount: 0,
-    }
   );
 }
 

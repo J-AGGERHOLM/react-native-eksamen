@@ -6,39 +6,49 @@ import { GetTransactions } from "../services/TransactionUtil";
 import { formatDate, formatTime, formatMoney } from "../utils/format";
 
 export function HistoryScreen({ route }) {
+  // Gets the logged-in user id from navigation params.
   const userId = route.params?.userId;
 
+  // Stores the user's goals.
   const [goals, setGoals] = useState([]);
+  // Stores transactions connected to the user's goals.
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
+    // Loads goals and related transactions for the user.
     async function loadHistoryData() {
       try {
+        // Stops loading if no user is logged in.
         if (!userId) {
           Alert.alert("No user logged in to fetch data from");
           return;
         }
 
+        // Fetches all goals for the logged-in user and Saves goals in state.
         const fetchedGoals = await GetGoals(userId);
         setGoals(fetchedGoals);
 
+        // Extracts goal ids to fetch matching transactions.
         const goalIds = fetchedGoals.map((goal) => goal.id);
 
+        // Fetches transactions where goalID matches the user's goals and saves them in state.
         const fetchedTransactions = await GetTransactions(goalIds);
         setTransactions(fetchedTransactions);
       } catch (err) {
         console.log("Could not load goals: " + err);
       }
     }
+
+    // Runs the history loading function.
     loadHistoryData();
   }, [userId]);
 
-  // totalContributed = Samlet overføresler.
+  // Calculates the total amount contributed across all transactions.
   const totalContributed = transactions.reduce((total, transaction) => {
     return total + Number(transaction.amount);
   }, 0);
 
-  // Gruppere transactions efter dato.
+  // Groups transactions by their formatted date.
   const groupedTransactions = groupTransactionsByDate(transactions);
 
   return (
@@ -48,20 +58,22 @@ export function HistoryScreen({ route }) {
 
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Contributed</Text>
+          {/* Displays total contributed amount. */}
           <Text style={styles.summaryAmount}>{formatMoney(totalContributed)}</Text>
+           {/* Displays number of transactions. */}
           <Text style={styles.summarySubText}>{transactions.length} transactions</Text>
         </View>
 
         {/* 
-            Bruger Object.keys til at hente dato, som er nøglen i dictionary. 
-            Looper igennem alle datoer
+            Uses Object.keys to fetch date. 
+            Loops through each date group.
         */}
         {Object.keys(groupedTransactions).map((dateKey) => (
           <View key={dateKey} style={styles.dateGroup}>
             <Text style={styles.dateTitle}>{dateKey}</Text>
             {/* 
-                Looper igennem alle transactioner for den specifikke dato
-                key={transaction.id} er til for at react kan kende forskel på elementerne. 
+                Render all transactions for the specific date group.
+                key={transaction.id} react can track each transaction for optimal rendering. 
             */}
             {groupedTransactions[dateKey].map((transaction) => (
               <TransactionCard key={transaction.id} transaction={transaction} goals={goals} />
@@ -74,33 +86,38 @@ export function HistoryScreen({ route }) {
 }
 
 function TransactionCard({ transaction, goals }) {
-  // Finder navn på transaction.
+  // Finds the goal connected to this transaction.
   const goal = goals.find((goal) => goal.id === transaction.goalID);
   const goalName = goal ? goal.name : "Unknown goal";
 
-  // Laver view for specifik transaction
+   // Uses the goal name or a fallback if no goal is found.
   return (
     <View style={styles.transactionCard}>
       <View>
+        {/* Displays the related goal name. */}
         <Text style={styles.transactionGoal}>{goalName}</Text>
+         {/* Displays the transaction time. */}
         <Text style={styles.transactionTime}>{formatTime(transaction.date)}</Text>
       </View>
 
+       {/* Displays the transaction amount. */}
       <Text style={styles.transactionAmount}>+{formatMoney(transaction.amount)}</Text>
     </View>
   );
 }
 
 function groupTransactionsByDate(transactions) {
+  // Builds an object where each key is a formatted date.
   return transactions.reduce((groups, transaction) => {
+    // Formats the transaction date for grouping.
     const dateKey = formatDate(transaction.date);
 
-    // Hvis dato ikke eksistere
+    // Creates the date group if it does not exist.
     if (!groups[dateKey]) {
       groups[dateKey] = [];
     }
 
-    // indsæt transaktion på dato gruppen.
+    // Adds the transaction to its date group.
     groups[dateKey].push(transaction);
 
     return groups;

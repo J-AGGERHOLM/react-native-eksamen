@@ -4,74 +4,93 @@ import { useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { AddMoneyModal } from "../components/modals/AddMoneyModal";
 import { useState, useEffect } from "react";
-import { SetTransactions, GetTransactionsByGoalID  } from "../services/TransactionUtil";
-import { CalculateAmountLeft, 
-  CalculatePercentage, 
-  CalculateProjections, 
-  CalculateTotalPaid 
+import { SetTransactions, GetTransactionsByGoalID } from "../services/TransactionUtil";
+import {
+  CalculateAmountLeft,
+  CalculatePercentage,
+  CalculateProjections,
+  CalculateTotalPaid
 } from "../utils/calculator";
 import { formatMoney, formatDate } from "../utils/format";
 
 export function GoalDetailsScreen({ route }) {
+  // Gives access to navigation functions like goBack.
   const navigation = useNavigation();
+  // Controls whether the add money modal is visible.
   const [modalVisible, setModalVisible] = useState(false);
+  // Stores all transactions connected to this specific goal.
   const [transactions, setAllTransactions] = useState([]);
+  // Gets the selected goal from navigation params.
   const { goal } = route.params;
 
   useEffect(() => {
+    // Loads all transactions that belong to this goal.
     async function loadTransactions() {
       try {
+        // Stops the function if the goal has no id.
         if (!goal.id) {
           console.log("No goal id found");
           return;
         }
 
+        // Fetches transactions where goalID matches this goal.
         const data = await GetTransactionsByGoalID(goal.id);
+        // Saves the fetched transactions in state.
         setAllTransactions(data);
       } catch (error) {
         console.log("Could not load transactions:", error);
       }
     }
 
+    // Runs the transaction loading function.
     loadTransactions();
   }, [goal.id]);
 
+  // Calculates the total amount paid from all transactions.
   const totalPaid = CalculateTotalPaid(transactions);
+  // Calculates how much money is still missing.
   const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
+  // Calculates the progress percentage for the goal.
   const percentage = CalculatePercentage(goal.target, totalPaid);
+  // Calculates projected completion dates based on weekly savings.
   const projections = CalculateProjections(goal.target, totalPaid);
 
   async function addMoney(amount) {
-      if(!goal.id) {
-        console.log("No goal ID found");
-        return;
-      }
+    // Stops the function if the goal has no id.
+    if (!goal.id) {
+      console.log("No goal ID found");
+      return;
+    }
 
-      const newTransaction = {
-        amount: amount,
-        goalID: goal.id,
-        date: new Date(),
-      };
-          
-       try {
-        const createdTransactionId = await SetTransactions(newTransaction);
+    // Creates a new transaction object.
+    const newTransaction = {
+      amount: amount,
+      goalID: goal.id,
+      date: new Date(),
+    };
 
-        setAllTransactions((currentTransactions) => [
-          {
-            id: createdTransactionId,
-            ...newTransaction,
-          },
-          ...currentTransactions,
-        ]);
-      } catch (error) {
-        console.log("Could not add transaction:", error);
-      }
+    try {
+      // Saves the new transaction in Firestore.
+      const createdTransactionId = await SetTransactions(newTransaction);
+
+      // Adds the new transaction to local state.
+      setAllTransactions((currentTransactions) => [
+        {
+          id: createdTransactionId,
+          ...newTransaction,
+        },
+        ...currentTransactions,
+      ]);
+    } catch (error) {
+      console.log("Could not add transaction:", error);
+    }
   }
 
   return (
     <ScreenContainer>
       <View style={styles.screen}>
         <View style={styles.topActions}>
+          {/* Navigates back to the previous screen. */}
           <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
             <FontAwesome5 name="arrow-left" size={18} color="#111" />
             <Text style={styles.backText}>Back</Text>
@@ -83,27 +102,34 @@ export function GoalDetailsScreen({ route }) {
         </View>
 
         <View style={styles.goalCard}>
+          {/* Displays the goal name. */}
           <Text style={styles.goalTitle}>{goal.name}</Text>
+          {/* Displays the formatted due date. */}
           <Text style={styles.dueDateText}>Due date: {formatDate(goal.dueDate)}</Text>
 
           <View style={styles.moneyRow}>
             <View>
+               {/* Displays total paid based on transactions. */}
               <Text style={styles.smallBlueText}>Current progress</Text>
               <Text style={styles.bigMoney}>{formatMoney(totalPaid)}</Text>
             </View>
 
             <View style={styles.targetBlock}>
+              {/* Displays the goal target amount. */}
               <Text style={styles.smallBlueText}>Target</Text>
               <Text style={styles.targetMoney}>{formatMoney(goal.target)}</Text>
             </View>
           </View>
 
           <View style={styles.progressTrack}>
+            {/* Fills the progress bar based on percentage. */}
             <View style={[styles.progressFill, { width: `${percentage}%` }]} />
           </View>
 
           <View style={styles.progressInfoRow}>
+            {/* Displays calculated progress percentage. */}
             <Text style={styles.cardBottomText}>{percentage}% complete</Text>
+            {/* Displays calculated remaining amount. */}
             <Text style={styles.cardBottomText}>{formatMoney(amountLeft)} remaining</Text>
           </View>
         </View>
@@ -112,13 +138,17 @@ export function GoalDetailsScreen({ route }) {
           <Text style={styles.sectionTitle}>Smart Projections</Text>
 
           <View style={styles.projectionList}>
+            {/* Renders each calculated projection option. */}
             {projections.map((item) => (
               <View style={styles.projectionItem} key={item.id}>
                 <View>
+                  {/* Shows the weekly saving amount. */}
                   <Text style={styles.projectionTitle}>{item.title}</Text>
+                  {/* Shows how many weeks it will take. */}
                   <Text style={styles.projectionWeeks}>{item.weeks}</Text>
                 </View>
 
+                {/* Shows the estimated completion date. */}
                 <Text style={styles.projectionDate}>{item.date}</Text>
               </View>
             ))}
@@ -127,11 +157,13 @@ export function GoalDetailsScreen({ route }) {
       </View>
 
       <View style={styles.buttonArea}>
+        {/* Opens the add money modal. */}
         <Pressable style={styles.addMoneyButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.plusText}>＋</Text>
           <Text style={styles.addMoneyText}>Add Money</Text>
         </Pressable>
       </View>
+       {/* Modal used to add money to this goal. */}
       <AddMoneyModal visible={modalVisible} onClose={() => setModalVisible(false)} onAddMoney={addMoney} />
     </ScreenContainer>
   );
