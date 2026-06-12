@@ -3,6 +3,7 @@ import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { GetGoals } from "../services/GoalUtil";
 import { useEffect, useState } from "react";
 import { GetTransactions } from "../services/TransactionUtil";
+import { formatDate, formatTime, formatMoney } from "../utils/format";
 
 export function HistoryScreen({ route }) {
   const userId = route.params?.userId;
@@ -17,6 +18,7 @@ export function HistoryScreen({ route }) {
           Alert.alert("No user logged in to fetch data from");
           return;
         }
+
         const fetchedGoals = await GetGoals(userId);
         setGoals(fetchedGoals);
 
@@ -24,9 +26,6 @@ export function HistoryScreen({ route }) {
 
         const fetchedTransactions = await GetTransactions(goalIds);
         setTransactions(fetchedTransactions);
-
-        const transactions = await GetTransactions(goalIds);
-        setTransactions(transactions);
       } catch (err) {
         console.log("Could not load goals: " + err);
       }
@@ -36,7 +35,7 @@ export function HistoryScreen({ route }) {
 
   // totalContributed = Samlet overføresler.
   const totalContributed = transactions.reduce((total, transaction) => {
-    return total + transaction.amount;
+    return total + Number(transaction.amount);
   }, 0);
 
   // Gruppere transactions efter dato.
@@ -49,7 +48,7 @@ export function HistoryScreen({ route }) {
 
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Contributed</Text>
-          <Text style={styles.summaryAmount}>{totalContributed}kr</Text>
+          <Text style={styles.summaryAmount}>{formatMoney(totalContributed)}</Text>
           <Text style={styles.summarySubText}>{transactions.length} transactions</Text>
         </View>
 
@@ -87,14 +86,14 @@ function TransactionCard({ transaction, goals }) {
         <Text style={styles.transactionTime}>{formatTime(transaction.date)}</Text>
       </View>
 
-      <Text style={styles.transactionAmount}>+{transaction.amount}kr</Text>
+      <Text style={styles.transactionAmount}>+{formatMoney(transaction.amount)}</Text>
     </View>
   );
 }
 
 function groupTransactionsByDate(transactions) {
   return transactions.reduce((groups, transaction) => {
-    const dateKey = formatTime(transaction.date);
+    const dateKey = formatDate(transaction.date);
 
     // Hvis dato ikke eksistere
     if (!groups[dateKey]) {
@@ -106,24 +105,6 @@ function groupTransactionsByDate(transactions) {
 
     return groups;
   }, {});
-}
-
-// Firestone viser en dato normalt. Men når man henter ind, skrives det i date objekt
-// som har følgende værdier: seconds og nanoseconds. Man skal konventere det til date.
-function formatTime(timestamp) {
-  if (!timestamp) {
-    return "";
-  }
-
-  // Converts timestamp object to date.
-  const date = new Date(timestamp.seconds * 1000);
-
-  return date.toLocaleDateString("da-DK", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 const styles = StyleSheet.create({
