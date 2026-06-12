@@ -10,6 +10,7 @@ import { CalculateAmountLeft,
   CalculateProjections, 
   CalculateTotalPaid 
 } from "../utils/calculator";
+import { formatMoney, formatDate } from "../utils/format";
 
 export function GoalDetailsScreen({ route }) {
   const navigation = useNavigation();
@@ -136,52 +137,7 @@ export function GoalDetailsScreen({ route }) {
   );
 }
 
-function formatTime(timestamp) {
-  const date = getDateFromValue(timestamp);
 
-  if (!date || isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toLocaleTimeString("da-DK", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatMoney(amount) {
-  return `$${Number(amount).toLocaleString()}`;
-}
-
-function getDateFromValue(value) {
-  if (!value) {
-    return null;
-  }
-
-  if (value.seconds) {
-    return new Date(value.seconds * 1000);
-  }
-
-  if (value.toDate) {
-    return value.toDate();
-  }
-
-  return new Date(value);
-}
-
-function formatDate(timestamp) {
-  const date = getDateFromValue(timestamp);
-
-  if (!date) {
-    return "";
-  }
-
-  return date.toLocaleDateString("da-DK", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 const styles = StyleSheet.create({
   screen: {

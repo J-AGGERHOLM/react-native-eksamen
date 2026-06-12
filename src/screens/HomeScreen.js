@@ -6,6 +6,7 @@ import { NewGoalModal } from "../components/modals/NewGoalModal";
 import { GetGoals, SetGoal } from "../services/GoalUtil";
 import { GetTransactions } from "../services/TransactionUtil";
 import { CalculateTotalPaid, CalculateAmountLeft, CalculatePercentage } from "../utils/calculator";
+import { formatMoney } from "../utils/format";
 
 export function HomeScreen({ route }) {
   const userId = route.params?.userId;
@@ -180,10 +181,6 @@ function totalSavings(goals) {
       totalAmount: 0,
     }
   );
-}
-
-function formatMoney(amount) {
-  return `$${Number(amount).toLocaleString()}`;
 }
 
 const styles = StyleSheet.create({
