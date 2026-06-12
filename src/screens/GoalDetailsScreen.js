@@ -2,15 +2,71 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { AddMoneyModal } from "../components/modals/AddMoneyModal";
+import { useState, useEffect } from "react";
+import { SetTransactions, GetTransactionsByGoalID  } from "../services/TransactionUtil";
+import { CalculateAmountLeft } from "../utils/calculateRemainingSum";
+import { CalculatePercentage } from "../utils/calculatePercentComplete";
+import { CalculateProjections } from "../utils/calculateProjection";
 
 export function GoalDetailsScreen({ route }) {
   const navigation = useNavigation();
-
+  const [modalVisible, setModalVisible] = useState(false);
+  const [transactions, setAllTransactions] = useState([]);
   const { goal } = route.params;
 
-  const amountLeft = calculateAmountLeft(goal);
-  const percentage = calculatePercentage(goal);
-  const projections = calculateProjections(goal);
+  useEffect(() => {
+    async function loadTransactions() {
+      try {
+        if (!goal.id) {
+          console.log("No goal id found");
+          return;
+        }
+
+        const data = await GetTransactionsByGoalID(goal.id);
+        setAllTransactions(data);
+      } catch (error) {
+        console.log("Could not load transactions:", error);
+      }
+    }
+
+    loadTransactions();
+  }, [goal.id]);
+
+  const totalPaid = transactions.reduce((total, transaction) => {
+    return total + Number(transaction.amount);
+  }, 0);
+
+  const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
+  const percentage = CalculatePercentage(goal.target, totalPaid);
+  const projections = CalculateProjections(goal.target, totalPaid);
+
+  async function addMoney(amount) {
+      if(!goal.id) {
+        console.log("No goal ID found");
+        return;
+      }
+
+      const newTransaction = {
+        amount: amount,
+        goalID: goal.id,
+        date: new Date(),
+      };
+          
+       try {
+        const createdTransactionId = await SetTransactions(newTransaction);
+
+        setAllTransactions((currentTransactions) => [
+          {
+            id: createdTransactionId,
+            ...newTransaction,
+          },
+          ...currentTransactions,
+        ]);
+      } catch (error) {
+        console.log("Could not add transaction:", error);
+      }
+  }
 
   return (
     <ScreenContainer>
@@ -28,12 +84,12 @@ export function GoalDetailsScreen({ route }) {
 
         <View style={styles.goalCard}>
           <Text style={styles.goalTitle}>{goal.name}</Text>
-          <Text style={styles.dueDateText}>Due date: {formatDisplayDate(goal.dueDate)}</Text>
+          <Text style={styles.dueDateText}>Due date: {formatDate(goal.dueDate)}</Text>
 
           <View style={styles.moneyRow}>
             <View>
               <Text style={styles.smallBlueText}>Current progress</Text>
-              <Text style={styles.bigMoney}>{formatMoney(goal.totalPaid)}</Text>
+              <Text style={styles.bigMoney}>{formatMoney(totalPaid)}</Text>
             </View>
 
             <View style={styles.targetBlock}>
@@ -71,71 +127,59 @@ export function GoalDetailsScreen({ route }) {
       </View>
 
       <View style={styles.buttonArea}>
-        <Pressable style={styles.addMoneyButton} onPress={() => alert("Add money")}>
+        <Pressable style={styles.addMoneyButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.plusText}>＋</Text>
           <Text style={styles.addMoneyText}>Add Money</Text>
         </Pressable>
       </View>
+      <AddMoneyModal visible={modalVisible} onClose={() => setModalVisible(false)} onAddMoney={addMoney} />
     </ScreenContainer>
   );
 }
 
-function calculateAmountLeft(goal) {
-  const target = Number(goal.target);
-  const totalPaid = Number(goal.totalPaid);
+function formatTime(timestamp) {
+  const date = getDateFromValue(timestamp);
 
-  return Math.max(target - totalPaid, 0);
-}
-
-function calculatePercentage(goal) {
-  const target = Number(goal.target);
-  const totalPaid = Number(goal.totalPaid);
-
-  if (target <= 0) {
-    return 0;
+  if (!date || isNaN(date.getTime())) {
+    return "";
   }
 
-  const percentage = Math.round((totalPaid / target) * 100);
-
-  return Math.min(percentage, 100);
-}
-
-function calculateProjections(goal) {
-  const amountLeft = calculateAmountLeft(goal);
-
-  const weeklyAmounts = [50, 100, 200];
-
-  return weeklyAmounts.map((weeklyAmount) => {
-    const weeksNeeded = Math.ceil(amountLeft / weeklyAmount);
-    const completionDate = calculateCompletionDate(weeksNeeded);
-
-    return {
-      id: weeklyAmount.toString(),
-      title: `Save ${formatMoney(weeklyAmount)}/week`,
-      weeks: `${weeksNeeded} ${weeksNeeded === 1 ? "week" : "weeks"}`,
-      date: formatDisplayDate(completionDate),
-    };
+  return date.toLocaleTimeString("da-DK", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
-}
-
-function calculateCompletionDate(weeksNeeded) {
-  const completionDate = new Date();
-
-  completionDate.setDate(completionDate.getDate() + weeksNeeded * 7);
-
-  return completionDate;
 }
 
 function formatMoney(amount) {
   return `$${Number(amount).toLocaleString()}`;
 }
 
-function formatDisplayDate(dateValue) {
-  const date = new Date(dateValue);
+function getDateFromValue(value) {
+  if (!value) {
+    return null;
+  }
 
-  return date.toLocaleDateString("en-US", {
-    month: "short",
+  if (value.seconds) {
+    return new Date(value.seconds * 1000);
+  }
+
+  if (value.toDate) {
+    return value.toDate();
+  }
+
+  return new Date(value);
+}
+
+function formatDate(timestamp) {
+  const date = getDateFromValue(timestamp);
+
+  if (!date) {
+    return "";
+  }
+
+  return date.toLocaleDateString("da-DK", {
     day: "numeric",
+    month: "short",
     year: "numeric",
   });
 }
@@ -231,6 +275,11 @@ const styles = StyleSheet.create({
   progressInfoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+
+  emptyText: {
+    fontSize: 14,
+    color: "#666",
   },
 
   cardBottomText: {
