@@ -53,17 +53,6 @@ export function HistoryScreen({ route }) {
           <Text style={styles.summarySubText}>{transactions.length} transactions</Text>
         </View>
 
-        <View style={styles.filterRow}>
-          <Pressable style={styles.filterButton}>
-            <Text style={styles.filterText}>All goals</Text>
-            <Text style={styles.filterArrow}>⌄</Text>
-          </Pressable>
-
-          <Pressable style={styles.filterButton}>
-            <Text style={styles.filterText}>All time</Text>
-            <Text style={styles.filterArrow}>⌄</Text>
-          </Pressable>
-        </View>
         {/* 
             Bruger Object.keys til at hente dato, som er nøglen i dictionary. 
             Looper igennem alle datoer
