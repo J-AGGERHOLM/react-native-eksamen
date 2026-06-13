@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
@@ -9,9 +9,10 @@ import {
   CalculateAmountLeft,
   CalculatePercentage,
   CalculateProjections,
-  CalculateTotalPaid
+  CalculateTotalPaid,
 } from "../utils/calculator";
 import { formatMoney, formatDate } from "../utils/format";
+import { DeleteGoal } from "../services/GoalUtil";
 
 export function GoalDetailsScreen({ route }) {
   // Gives access to navigation functions like goBack.
@@ -86,6 +87,34 @@ export function GoalDetailsScreen({ route }) {
     }
   }
 
+  async function handleDeleteGoal() {
+    console.log("Delete button pressed");
+
+    if (!goal.id) {
+      console.log("No goal ID found");
+      return;
+    }
+
+    Alert.alert("Delete goal", `Are you sure you want to delete "${goal.name}"?`, [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await DeleteGoal(goal.id);
+            navigation.goBack();
+          } catch (error) {
+            console.log("Could not delete goal:", error);
+          }
+        },
+      },
+    ]);
+  }
+
   return (
     <ScreenContainer>
       <View style={styles.screen}>
@@ -96,7 +125,7 @@ export function GoalDetailsScreen({ route }) {
             <Text style={styles.backText}>Back</Text>
           </Pressable>
 
-          <Pressable onPress={() => alert("Delete goal")}>
+          <Pressable onPress={handleDeleteGoal}>
             <FontAwesome5 name="trash-alt" size={18} color="#ef4444" />
           </Pressable>
         </View>
@@ -109,7 +138,7 @@ export function GoalDetailsScreen({ route }) {
 
           <View style={styles.moneyRow}>
             <View>
-               {/* Displays total paid based on transactions. */}
+              {/* Displays total paid based on transactions. */}
               <Text style={styles.smallBlueText}>Current progress</Text>
               <Text style={styles.bigMoney}>{formatMoney(totalPaid)}</Text>
             </View>
@@ -163,13 +192,11 @@ export function GoalDetailsScreen({ route }) {
           <Text style={styles.addMoneyText}>Add Money</Text>
         </Pressable>
       </View>
-       {/* Modal used to add money to this goal. */}
+      {/* Modal used to add money to this goal. */}
       <AddMoneyModal visible={modalVisible} onClose={() => setModalVisible(false)} onAddMoney={addMoney} />
     </ScreenContainer>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   screen: {

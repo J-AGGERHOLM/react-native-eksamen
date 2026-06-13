@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NewGoalModal } from "../components/modals/NewGoalModal";
 import { GetGoals, SetGoal } from "../services/GoalUtil";
 import { GetTransactions } from "../services/TransactionUtil";
@@ -21,37 +21,39 @@ export function HomeScreen({ route }) {
   // Stores all goals for the logged-in user.
   const [transactions, setTransactions] = useState([]);
 
-  useEffect(() => {
-    // Loads goals and their related transactions.
-    async function loadGoals() {
-      try {
-        // Stops loading if no user id is available.
-        if (!userId) {
-          console.log("no userId found");
-          return;
+  //useFocusEffect the and effect that is mounted for every new viewing
+  useFocusEffect(
+    //useCallback feeds the function loadGoals() to the useFocusEffect.
+    useCallback(() => {
+      // Loads goals and their related transactions.
+      async function loadGoals() {
+        try {
+          // Stops loading if no user id is available.
+          if (!userId) {
+            console.log("no userId found");
+            return;
+          }
+
+          // Fetches all goals for the user.
+          const goals = await GetGoals(userId);
+          // Extracts goal ids to fetch matching transactions.
+          const goalIds = goals.map((goal) => goal.id);
+          // Fetches transactions connected to the user's goals
+          const transactions = await GetTransactions(goalIds);
+
+          // Saves goals in state.
+          setGoals(goals);
+          // Saves goals in state.
+          setTransactions(transactions);
+        } catch (err) {
+          console.log("Could not load goals: " + err);
         }
-
-        // Fetches all goals for the user.
-        const goals = await GetGoals(userId);
-        // Extracts goal ids to fetch matching transactions.
-        const goalIds = goals.map((goal) => goal.id);
-        // Fetches transactions connected to the user's goals
-        const transactions = await GetTransactions(goalIds);
-
-        // Saves goals in state.
-        setGoals(goals);
-        // Saves goals in state.
-        setTransactions(transactions);
-
-      } catch (err) {
-        console.log("Could not load goals: " + err);
       }
-    }
 
-    // Runs the loading function when the user id changes.
-    loadGoals();
-  }, [userId]);
-
+      // Runs the loading function when the user id changes.
+      loadGoals();
+    }, [userId]),
+  );
 
   async function addGoal(newGoal) {
     try {
@@ -65,7 +67,6 @@ export function HomeScreen({ route }) {
       const savedGoal = await SetGoal(newGoal, userId);
       // Adds the saved goal to local state.
       setGoals((currentGoals) => [...currentGoals, savedGoal]);
-
     } catch (err) {
       console.log("Could not create goal: " + err);
     }
@@ -155,7 +156,7 @@ function totalSavings(goals) {
     {
       totalPaid: 0,
       totalAmount: 0,
-    }
+    },
   );
 }
 
@@ -177,15 +178,11 @@ function SavingsSummaryCard({ goals }) {
         <Text style={styles.summaryAmount}>{formatMoney(totalPaid)}</Text>
 
         <View style={styles.summaryFooter}>
-           {/* Displays total progress percentage. */}
-          <Text style={styles.summaryFooterText}>
-            {percentage}% complete
-          </Text>
+          {/* Displays total progress percentage. */}
+          <Text style={styles.summaryFooterText}>{percentage}% complete</Text>
 
           {/* Displays remaining amount across all goals. */}
-          <Text style={styles.summaryFooterText}>
-            {formatMoney(remaining)} remaining
-          </Text>
+          <Text style={styles.summaryFooterText}>{formatMoney(remaining)} remaining</Text>
         </View>
       </View>
     </View>
@@ -204,7 +201,7 @@ function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress })
         {formatMoney(totalPaid)} of {formatMoney(target)}
       </Text>
 
-       {/* Fills progress bar based on percentage. */}
+      {/* Fills progress bar based on percentage. */}
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${Math.min(percentage, 100)}%` }]} />
       </View>
