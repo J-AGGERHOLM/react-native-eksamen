@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, where, query } from "firebase/firestore";
+import { collection, getDocs, addDoc, where, query, doc, deleteDoc } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
 
 // Saves a new goal in Firestore.
@@ -48,4 +48,9 @@ export async function GetGoals(userId) {
     // The spread operator (...) copies all those fields into this object.
     ...goalDoc.data(),
   }));
+}
+
+//Delete goals:
+export async function DeleteGoal(goalId) {
+  await deleteDoc(doc(database, "goals", goalId));
 }

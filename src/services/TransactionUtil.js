@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, where, query } from "firebase/firestore";
+import { collection, getDocs, addDoc, where, query, doc, deleteDoc } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
 
 // Fetches transactions for multiple goals.
@@ -9,10 +9,7 @@ export async function GetTransactions(goalIds) {
   }
 
   // Creates a Firestore query for transactions matching the goal ids.
-  const transactionQuery = query(
-    collection(database, "transactions"),
-    where("goalID", "in", goalIds)
-  );
+  const transactionQuery = query(collection(database, "transactions"), where("goalID", "in", goalIds));
 
   // Executes the Firestore query
   const querySnapshot = await getDocs(transactionQuery);
@@ -61,4 +58,9 @@ export async function SetTransactions(transaction) {
     date: transaction.date,
     goalID: transaction.goalID,
   };
+}
+
+// Deletes one transaction from Firestore.
+export async function DeleteTransaction(transactionId) {
+  await deleteDoc(doc(database, "transactions", transactionId));
 }
