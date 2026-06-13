@@ -2,8 +2,9 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from "react-nati
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { GetGoals } from "../services/GoalUtil";
 import { useEffect, useState } from "react";
-import { GetTransactions } from "../services/TransactionUtil";
+import { GetTransactions, DeleteTransaction } from "../services/TransactionUtil";
 import { formatDate, formatTime, formatMoney } from "../utils/format";
+import { FontAwesome5 } from "@expo/vector-icons";
 
 export function HistoryScreen({ route }) {
   // Gets the logged-in user id from navigation params.
@@ -51,6 +52,31 @@ export function HistoryScreen({ route }) {
   // Groups transactions by their formatted date.
   const groupedTransactions = groupTransactionsByDate(transactions);
 
+  //Delete a transaction:
+  async function handleDeleteTransaction(transactionId) {
+    Alert.alert("Delete transaction", "Are you sure you want to delete this transaction?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await DeleteTransaction(transactionId);
+
+            setTransactions((currentTransactions) =>
+              currentTransactions.filter((transaction) => transaction.id !== transactionId),
+            );
+          } catch (error) {
+            console.log("Could not delete transaction:", error);
+          }
+        },
+      },
+    ]);
+  }
+
   return (
     <ScreenContainer>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -60,7 +86,7 @@ export function HistoryScreen({ route }) {
           <Text style={styles.summaryLabel}>Total Contributed</Text>
           {/* Displays total contributed amount. */}
           <Text style={styles.summaryAmount}>{formatMoney(totalContributed)}</Text>
-           {/* Displays number of transactions. */}
+          {/* Displays number of transactions. */}
           <Text style={styles.summarySubText}>{transactions.length} transactions</Text>
         </View>
 
@@ -76,7 +102,12 @@ export function HistoryScreen({ route }) {
                 key={transaction.id} react can track each transaction for optimal rendering. 
             */}
             {groupedTransactions[dateKey].map((transaction) => (
-              <TransactionCard key={transaction.id} transaction={transaction} goals={goals} />
+              <TransactionCard
+                key={transaction.id}
+                transaction={transaction}
+                goals={goals}
+                onDelete={handleDeleteTransaction}
+              />
             ))}
           </View>
         ))}
@@ -85,23 +116,31 @@ export function HistoryScreen({ route }) {
   );
 }
 
-function TransactionCard({ transaction, goals }) {
+function TransactionCard({ transaction, goals, onDelete }) {
   // Finds the goal connected to this transaction.
   const goal = goals.find((goal) => goal.id === transaction.goalID);
   const goalName = goal ? goal.name : "Unknown goal";
 
-   // Uses the goal name or a fallback if no goal is found.
+  // Uses the goal name or a fallback if no goal is found.
   return (
     <View style={styles.transactionCard}>
       <View>
         {/* Displays the related goal name. */}
         <Text style={styles.transactionGoal}>{goalName}</Text>
-         {/* Displays the transaction time. */}
+        {/* Displays the transaction time. */}
         <Text style={styles.transactionTime}>{formatTime(transaction.date)}</Text>
       </View>
 
-       {/* Displays the transaction amount. */}
+      {/* Displays the transaction amount. */}
       <Text style={styles.transactionAmount}>+{formatMoney(transaction.amount)}</Text>
+
+      {/* Delete button */}
+      <Pressable onPress={() => onDelete(transaction.id)} style={styles.deleteButton}>
+        <Text style={styles.deleteButtonText}>
+          {" "}
+          <FontAwesome5 name="trash-alt" size={18} color="#ef4444" />
+        </Text>
+      </Pressable>
     </View>
   );
 }
