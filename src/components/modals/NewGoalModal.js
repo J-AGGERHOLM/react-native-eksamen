@@ -1,6 +1,7 @@
 import { Modal, View, Text, TextInput, Pressable, StyleSheet, Platform } from "react-native";
 import { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { formatDate} from "../../utils/format";
 
 export function NewGoalModal({ visible, onClose, onCreateGoal }) {
   const [goalName, setGoalName] = useState("");
@@ -33,7 +34,7 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
       completed: false,
       dueDate: dueDate,
       name: cleanedName,
-      startDate: formatDate(new Date()),
+      startDate: new Date(),
       amountLeft: targetNumber,
       totalPaid: 0,
       target: targetNumber,
@@ -66,7 +67,7 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
 
     if (selectedDate) {
       setDatePickerValue(selectedDate);
-      setDueDate(formatDate(selectedDate));
+      setDueDate(selectedDate);
     }
   }
 
@@ -109,7 +110,9 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
               <Text style={styles.label}>Due date</Text>
 
               <Pressable style={styles.dateInput} onPress={() => setShowDatePicker(true)}>
-                <Text style={dueDate ? styles.dateText : styles.placeholderText}>{dueDate || "Select due date"}</Text>
+                <Text style={dueDate ? styles.dateText : styles.placeholderText}>
+                  {dueDate ? formatDate(dueDate) : "Select due date"}
+                </Text>
               </Pressable>
 
               {showDatePicker && (
@@ -127,13 +130,7 @@ export function NewGoalModal({ visible, onClose, onCreateGoal }) {
   );
 }
 
-function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
-}
 
 const styles = StyleSheet.create({
   overlay: {

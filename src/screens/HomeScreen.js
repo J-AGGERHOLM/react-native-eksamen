@@ -21,7 +21,7 @@ export function HomeScreen({ route }) {
   // Stores all goals for the logged-in user.
   const [transactions, setTransactions] = useState([]);
 
-  //useFocusEffect the and effect that is mounted for every new viewing
+  //useFocusEffect runs every time the screen is focused, ensuring the latest data is loaded.
   useFocusEffect(
     //useCallback feeds the function loadGoals() to the useFocusEffect.
     useCallback(() => {
