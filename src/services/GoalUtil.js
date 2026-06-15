@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, where, query, doc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, where, query, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
 
 // Saves a new goal in Firestore.
@@ -53,4 +53,14 @@ export async function GetGoals(userId) {
 //Delete goals:
 export async function DeleteGoal(goalId) {
   await deleteDoc(doc(database, "goals", goalId));
+}
+
+//Goal completion
+export async function UpdateGoalCompletion(goalId, completed, completedAt = null) {
+  const goalRef = doc(database, "goals", goalId);
+
+  await updateDoc(goalRef, {
+    completed: completed,
+    completedAt: completed ? completedAt ?? new Date() : null,
+  });
 }
