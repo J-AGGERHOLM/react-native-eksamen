@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NewGoalModal } from "../components/modals/NewGoalModal";
@@ -127,6 +127,7 @@ export function HomeScreen({ route }) {
                 target={goal.target}
                 percentage={goal.percentage}
                 amountLeft={goal.amountLeft}
+                imageUrl={goal.imageUrl}
                 onPress={() =>
                   navigation.navigate("GoalDetailsPage", {
                     goal: goal,
@@ -190,9 +191,15 @@ function SavingsSummaryCard({ goals }) {
 }
 
 // A view for showing a specific goal
-function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress }) {
+function GoalCard({ title, totalPaid, target, percentage, amountLeft, imageUrl, onPress }) {
   return (
     <Pressable onPress={onPress} style={styles.goalCard}>
+      {/* Displays the goal image if one exists. */}
+      {imageUrl ? (
+        <Image source={{ uri: imageUrl }} style={styles.goalImage} />
+      ) : null}
+
+
       {/* Displays the goal name. */}
       <Text style={styles.goalTitle}>{title}</Text>
 
@@ -241,6 +248,13 @@ const styles = StyleSheet.create({
     lineHeight: 46,
     fontWeight: "500",
     color: "#fff",
+  },
+
+  goalImage: {
+    width: "100%",
+    height: 150,
+    borderRadius: 12,
+    marginBottom: 16,
   },
 
   summaryFooter: {

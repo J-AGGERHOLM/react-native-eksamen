@@ -5,29 +5,25 @@ import { database } from "../../firebaseConfig";
 export async function SetGoal(goal, userId) {
   // Adds the goal to the goals collection.
   const docRef = await addDoc(collection(database, "goals"), {
-    completed: goal.completed ?? false,
+    completed: goal.completed || false,
     dueDate: goal.dueDate,
     name: goal.name,
     startDate: goal.startDate,
     userID: userId,
-    amountLeft: goal.amountLeft,
-    totalPaid: goal.totalPaid ?? 0,
     target: goal.target,
-    percentage: goal.percentage ?? 0,
+    imageUrl: goal.imageUrl || null,
   });
 
   // Returns the saved goal with its Firestore id.
   return {
     id: docRef.id,
-    completed: goal.completed ?? false,
+    completed: goal.completed || false,
     dueDate: goal.dueDate,
     name: goal.name,
     startDate: goal.startDate,
     userID: userId,
-    amountLeft: goal.amountLeft,
-    totalPaid: goal.totalPaid ?? 0,
     target: goal.target,
-    percentage: goal.percentage ?? 0,
+    imageUrl: goal.imageUrl || null,
   };
 }
 
