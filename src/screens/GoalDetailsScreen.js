@@ -13,6 +13,7 @@ import {
 } from "../utils/calculator";
 import { formatMoney, formatDate } from "../utils/format";
 import { DeleteGoal } from "../services/GoalUtil";
+import { LogoutButton } from "../components/layout/LogOutContainer";
 
 export function GoalDetailsScreen({ route }) {
   // Gives access to navigation functions like goBack.
@@ -125,9 +126,13 @@ export function GoalDetailsScreen({ route }) {
             <Text style={styles.backText}>Back</Text>
           </Pressable>
 
-          <Pressable onPress={handleDeleteGoal}>
-            <FontAwesome5 name="trash-alt" size={18} color="#ef4444" />
-          </Pressable>
+          <View style={styles.rightActions}>
+            <LogoutButton />
+
+            <Pressable onPress={handleDeleteGoal}>
+              <FontAwesome5 name="trash-alt" size={18} color="#ef4444" />
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.goalCard}>
@@ -370,4 +375,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+
+  rightActions: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 14,
+},
 });

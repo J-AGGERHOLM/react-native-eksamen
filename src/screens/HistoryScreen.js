@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { GetTransactions, DeleteTransaction } from "../services/TransactionUtil";
 import { formatDate, formatTime, formatMoney } from "../utils/format";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { LogoutButton } from "../components/layout/LogOutContainer";
 
 export function HistoryScreen({ route }) {
   // Gets the logged-in user id from navigation params.
@@ -85,8 +86,10 @@ export function HistoryScreen({ route }) {
   return (
     <ScreenContainer>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.pageTitle}>Transaction History</Text>
-
+        <View style={styles.topRow}>
+          <Text style={styles.pageTitle}>Transaction History</Text>
+          <LogoutButton />
+        </View>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Contributed</Text>
           {/* Displays total contributed amount. */}
@@ -195,6 +198,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "rgba(255,255,255,0.85)",
     marginBottom: 6,
+  },
+
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
+
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#111111",
+    flex: 1,
+    marginRight: 12,
   },
 
   summaryAmount: {

@@ -7,6 +7,7 @@ import { GetGoals, SetGoal } from "../services/GoalUtil";
 import { GetTransactions } from "../services/TransactionUtil";
 import { CalculateTotalPaid, CalculateAmountLeft, CalculatePercentage } from "../utils/calculator";
 import { formatMoney } from "../utils/format";
+import { LogoutButton } from "../components/layout/LogOutContainer";
 
 export function HomeScreen({ route }) {
   // Gets the logged-in user id from navigation params.
@@ -97,6 +98,10 @@ export function HomeScreen({ route }) {
 
   return (
     <ScreenContainer>
+      <View style={styles.topRow}>
+        <Text style={styles.pageTitle}>Home</Text>
+        <LogoutButton />
+      </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {/*
             Top view of page. Box of summary of total goals.
@@ -349,5 +354,18 @@ const styles = StyleSheet.create({
   remainingText: {
     fontSize: 15,
     color: "#005cff",
+  },
+
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111111",
   },
 });
