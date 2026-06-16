@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { GetGoals } from "../services/GoalUtil";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { GetTransactions, DeleteTransaction } from "../services/TransactionUtil";
 import { formatDate, formatTime, formatMoney } from "../utils/format";
 import { FontAwesome5 } from "@expo/vector-icons";
@@ -15,34 +16,38 @@ export function HistoryScreen({ route }) {
   // Stores transactions connected to the user's goals.
   const [transactions, setTransactions] = useState([]);
 
-  useEffect(() => {
-    // Loads goals and related transactions for the user.
-    async function loadHistoryData() {
-      try {
-        // Stops loading if no user is logged in.
-        if (!userId) {
-          Alert.alert("No user logged in to fetch data from");
-          return;
+  //useFocusEffect runs every time the screen is focused, ensuring the latest data is loaded.
+  useFocusEffect(
+    //useCallback feeds the function loadGoals() to the useFocusEffect.
+    useCallback(() => {
+      // Loads goals and related transactions for the user.
+      async function loadHistoryData() {
+        try {
+          // Stops loading if no user is logged in.
+          if (!userId) {
+            Alert.alert("No user logged in to fetch data from");
+            return;
+          }
+
+          // Fetches all goals for the logged-in user and Saves goals in state.
+          const fetchedGoals = await GetGoals(userId);
+          setGoals(fetchedGoals);
+
+          // Extracts goal ids to fetch matching transactions.
+          const goalIds = fetchedGoals.map((goal) => goal.id);
+
+          // Fetches transactions where goalID matches the user's goals and saves them in state.
+          const fetchedTransactions = await GetTransactions(goalIds);
+          setTransactions(fetchedTransactions);
+        } catch (err) {
+          console.log("Could not load goals: " + err);
         }
-
-        // Fetches all goals for the logged-in user and Saves goals in state.
-        const fetchedGoals = await GetGoals(userId);
-        setGoals(fetchedGoals);
-
-        // Extracts goal ids to fetch matching transactions.
-        const goalIds = fetchedGoals.map((goal) => goal.id);
-
-        // Fetches transactions where goalID matches the user's goals and saves them in state.
-        const fetchedTransactions = await GetTransactions(goalIds);
-        setTransactions(fetchedTransactions);
-      } catch (err) {
-        console.log("Could not load goals: " + err);
       }
-    }
 
-    // Runs the history loading function.
-    loadHistoryData();
-  }, [userId]);
+      // Runs the history loading function.
+      loadHistoryData();
+    }, [userId])
+  )
 
   // Calculates the total amount contributed across all transactions.
   const totalContributed = transactions.reduce((total, transaction) => {
