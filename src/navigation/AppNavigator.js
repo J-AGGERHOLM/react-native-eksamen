@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoginPage } from "../screens/LoginScreen";
-import { NavBar } from "../components/layout/Navbar";
+import { NavBar } from "../components/layout/NavbarContainer";
 import { MileStoneScreen } from "../screens/MileStoneScreen";
 import { GoalDetailsScreen } from "../screens/GoalDetailsScreen";
 import { SignUpPage } from "../screens/SignUpPage";

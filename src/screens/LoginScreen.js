@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 /* use initialized auth from firebase config*/
 import { auth } from "../../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { biometricLogin } from "../utils/biometricLogIn";
 import { isBiometricLoginEnabled, enableBiometricsForUser, getBiometricUserId } from "../utils/biometricsStorage";
 
