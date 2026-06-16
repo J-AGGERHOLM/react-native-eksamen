@@ -85,11 +85,12 @@ export function HistoryScreen({ route }) {
 
   return (
     <ScreenContainer>
+      <View style={styles.topRow}>
+        <Text style={styles.pageTitle}>Transaction History</Text>
+        <LogoutButton />
+      </View>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.topRow}>
-          <Text style={styles.pageTitle}>Transaction History</Text>
-          <LogoutButton />
-        </View>
+
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Contributed</Text>
           {/* Displays total contributed amount. */}
