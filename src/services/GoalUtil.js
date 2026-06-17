@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, where, query, doc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, where, query, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { database } from "../../firebaseConfig";
 
 // Saves a new goal in Firestore.
@@ -49,4 +49,16 @@ export async function GetGoals(userId) {
 //Delete goals:
 export async function DeleteGoal(goalId) {
   await deleteDoc(doc(database, "goals", goalId));
+}
+
+// Updates whether a goal is completed or not.
+export async function UpdateGoalCompletion(goalId, completed, completedAt) {
+  // Points to one specific goal document in Firestore.
+  const goalRef = doc(database, "goals", goalId);
+
+  // Updates the completed fields in Firestore.
+  await updateDoc(goalRef, {
+    completed: completed,
+    completedAt: completedAt,
+  });
 }
