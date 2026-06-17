@@ -1,5 +1,5 @@
 import { View, StyleSheet, SafeAreaView } from "react-native";
-import { NavBar } from "./Navbar";
+import { NavBar } from "./NavbarContainer";
 
 export function ScreenContainer({ children, hideNavbar = true }) {
   return (

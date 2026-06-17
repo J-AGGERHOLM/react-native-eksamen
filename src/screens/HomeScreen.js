@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NewGoalModal } from "../components/modals/NewGoalModal";
@@ -7,6 +7,7 @@ import { GetGoals, SetGoal } from "../services/GoalUtil";
 import { GetTransactions } from "../services/TransactionUtil";
 import { CalculateTotalPaid, CalculateAmountLeft, CalculatePercentage } from "../utils/calculator";
 import { formatMoney } from "../utils/format";
+import { LogoutButton } from "../components/layout/LogOutContainer";
 
 export function HomeScreen({ route }) {
   // Gets the logged-in user id from navigation params.
@@ -21,7 +22,7 @@ export function HomeScreen({ route }) {
   // Stores all goals for the logged-in user.
   const [transactions, setTransactions] = useState([]);
 
-  //useFocusEffect the and effect that is mounted for every new viewing
+  //useFocusEffect runs every time the screen is focused, ensuring the latest data is loaded.
   useFocusEffect(
     //useCallback feeds the function loadGoals() to the useFocusEffect.
     useCallback(() => {
@@ -97,6 +98,10 @@ export function HomeScreen({ route }) {
 
   return (
     <ScreenContainer>
+      <View style={styles.topRow}>
+        <Text style={styles.pageTitle}>Home</Text>
+        <LogoutButton />
+      </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {/*
             Top view of page. Box of summary of total goals.
@@ -127,6 +132,7 @@ export function HomeScreen({ route }) {
                 target={goal.target}
                 percentage={goal.percentage}
                 amountLeft={goal.amountLeft}
+                imageUrl={goal.imageUrl}
                 onPress={() =>
                   navigation.navigate("GoalDetailsPage", {
                     goal: goal,
@@ -190,9 +196,15 @@ function SavingsSummaryCard({ goals }) {
 }
 
 // A view for showing a specific goal
-function GoalCard({ title, totalPaid, target, percentage, amountLeft, onPress }) {
+function GoalCard({ title, totalPaid, target, percentage, amountLeft, imageUrl, onPress }) {
   return (
     <Pressable onPress={onPress} style={styles.goalCard}>
+      {/* Displays the goal image if one exists. */}
+      {imageUrl ? (
+        <Image source={{ uri: imageUrl }} style={styles.goalImage} />
+      ) : null}
+
+
       {/* Displays the goal name. */}
       <Text style={styles.goalTitle}>{title}</Text>
 
@@ -241,6 +253,13 @@ const styles = StyleSheet.create({
     lineHeight: 46,
     fontWeight: "500",
     color: "#fff",
+  },
+
+  goalImage: {
+    width: "100%",
+    height: 150,
+    borderRadius: 12,
+    marginBottom: 16,
   },
 
   summaryFooter: {
@@ -335,5 +354,18 @@ const styles = StyleSheet.create({
   remainingText: {
     fontSize: 15,
     color: "#005cff",
+  },
+
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111111",
   },
 });
