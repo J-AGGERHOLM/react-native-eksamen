@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
+
 import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { GetGoals, UpdateGoalCompletion } from "../services/GoalUtil";
 import { GetTransactions } from "../services/TransactionUtil";
@@ -9,94 +10,130 @@ import { CalculateAmountLeft, CalculatePercentage, CalculateTotalPaid } from "..
 import { formatDate, formatMoney } from "../utils/format";
 
 export function MileStoneScreen({ route }) {
+  // Gets the logged-in user's id from navigation params.
   const userId = route.params?.userId;
+
+  // Gives access to navigation, so we can open the goal details page.
   const navigation = useNavigation();
 
+  // Stores only the goals that have been completed.
   const [completedGoals, setCompletedGoals] = useState([]);
-  const [loading, setLoading] = useState(false);
 
+  /*
+    useFocusEffect runs every time this screen is opened.
+
+    This is useful here because a goal can become completed on another screen,
+    for example when the user adds money on GoalDetailsScreen.
+  */
   useFocusEffect(
     useCallback(() => {
-      let screenIsActive = true;
-
-      async function loadMilestones() {
-        try {
-          if (!userId) {
-            console.log("No user id found for milestones");
-            return;
-          }
-
-          setLoading(true);
-
-          const fetchedGoals = await GetGoals(userId);
-          const goalIds = fetchedGoals.map((goal) => goal.id);
-          const fetchedTransactions = await GetTransactions(goalIds);
-
-          const goalsWithProgress = fetchedGoals.map((goal) => {
-            return createGoalWithProgress(goal, fetchedTransactions);
-          });
-
-          const reachedGoals = goalsWithProgress.filter((goal) => goal.isCompleted);
-
-          await Promise.all(
-            reachedGoals
-              .filter((goal) => !goal.completed)
-              .map((goal) => UpdateGoalCompletion(goal.id, true, goal.completionDate ?? new Date())),
-          );
-
-          if (screenIsActive) {
-            setCompletedGoals(reachedGoals);
-          }
-        } catch (error) {
-          console.log("Could not load milestones:", error);
-        } finally {
-          if (screenIsActive) {
-            setLoading(false);
-          }
-        }
-      }
-
-      loadMilestones();
-
-      return () => {
-        screenIsActive = false;
-      };
+      loadCompletedGoals();
     }, [userId]),
   );
+
+  async function loadCompletedGoals() {
+    try {
+      // Stops the function if no user is logged in.
+      if (!userId) {
+        console.log("No user id found for milestones");
+        return;
+      }
+
+      // Fetches all goals that belong to the logged-in user.
+      const goals = await GetGoals(userId);
+
+      // Extracts all goal ids, so we can fetch matching transactions.
+      const goalIds = goals.map((goal) => goal.id);
+
+      // Fetches all transactions connected to the user's goals.
+      const transactions = await GetTransactions(goalIds);
+
+      // This array will contain only the completed goals.
+      const completedGoalsList = [];
+
+      /*
+        Loops through each goal and checks its progress.
+
+        A goal is completed if:
+        1. goal.completed is already true in Firestore
+        OR
+        2. the calculated percentage is 100 or higher
+      */
+      for (const goal of goals) {
+        // Finds only the transactions that belong to this specific goal.
+        const goalTransactions = transactions.filter((transaction) => {
+          return transaction.goalID === goal.id;
+        });
+
+        // Calculates how much has been saved for this goal.
+        const totalPaid = CalculateTotalPaid(goalTransactions);
+
+        // Calculates how much money is still missing.
+        const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
+
+        // Calculates progress in percent.
+        const percentage = CalculatePercentage(goal.target, totalPaid);
+
+        // Checks if the goal has reached 100%.
+        const goalIsCompleted = goal.completed === true || percentage >= 100;
+
+        // If the goal is not completed, skip it.
+        if (!goalIsCompleted) {
+          continue;
+        }
+
+        /*
+          If the goal just reached 100%, but Firestore has not been updated yet,
+          we update it here.
+
+          completedAt is the date when the app marks the goal as completed.
+        */
+        const completedAt = goal.completedAt ?? new Date();
+
+        if (goal.completed !== true) {
+          await UpdateGoalCompletion(goal.id, true, completedAt);
+        }
+
+        /*
+          Adds the completed goal to the list.
+
+          We include calculated values like totalPaid and percentage,
+          because the UI needs them.
+        */
+        completedGoalsList.push({
+          ...goal,
+          completed: true,
+          completedAt: completedAt,
+          totalPaid: totalPaid,
+          amountLeft: amountLeft,
+          percentage: percentage,
+        });
+      }
+
+      // Saves the completed goals in state, so they appear on the screen.
+      setCompletedGoals(completedGoalsList);
+    } catch (error) {
+      console.log("Could not load completed goals:", error);
+    }
+  }
 
   return (
     <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <View style={styles.topDivider} />
+        <Text style={styles.pageTitle}>Milestones</Text>
 
-        <View style={styles.smallHeaderRow}>
-          <Text style={styles.smallHeaderTitle}>Purchased Items</Text>
-          <Text style={styles.viewAllText}>View all</Text>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryLabel}>Completed Goals</Text>
+          <Text style={styles.summaryAmount}>{completedGoals.length}</Text>
+          <Text style={styles.summarySubText}>Purchased items</Text>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.pageTitle}>Purchased Items</Text>
-
-          <View style={styles.completedBadge}>
-            <Text style={styles.completedBadgeText}>{completedGoals.length} completed</Text>
-          </View>
+          <Text style={styles.sectionTitle}>Purchased Items</Text>
         </View>
 
-        {loading ? (
-          <View style={styles.centerState}>
-            <ActivityIndicator />
-            <Text style={styles.centerStateText}>Loading completed goals...</Text>
-          </View>
-        ) : completedGoals.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <View style={styles.emptyIconCircle}>
-              <FontAwesome5 name="flag-checkered" size={18} color="#16a34a" />
-            </View>
-            <Text style={styles.emptyTitle}>No completed goals yet</Text>
-            <Text style={styles.emptyText}>
-              When a goal reaches its target amount, it will show up here.
-            </Text>
-          </View>
+        {completedGoals.length === 0 ? (
+          <EmptyMilestoneCard />
         ) : (
           <View style={styles.goalList}>
             {completedGoals.map((goal) => (
@@ -119,69 +156,34 @@ export function MileStoneScreen({ route }) {
 
 function MilestoneCard({ goal, onPress }) {
   return (
-    <Pressable style={styles.milestoneCard} onPress={onPress}>
-      <View style={styles.checkCircle}>
-        <FontAwesome5 name="check" size={12} color="#16a34a" />
+    <Pressable style={styles.goalCard} onPress={onPress}>
+      <View style={styles.iconCircle}>
+        <FontAwesome5 name="check" size={13} color="#00a63e" />
       </View>
 
-      <View style={styles.cardTextBlock}>
+      <View style={styles.goalTextContainer}>
         <Text style={styles.goalTitle}>{goal.name}</Text>
-        <Text style={styles.savedText}>{formatMoney(goal.totalPaid)} saved</Text>
 
-        <View style={styles.dateRow}>
-          <FontAwesome5 name="calendar-alt" size={12} color="#64748b" />
-          <Text style={styles.dateText}>Purchased {formatDate(goal.completionDate)}</Text>
-        </View>
+        <Text style={styles.goalAmount}>{formatMoney(goal.totalPaid)} saved</Text>
+
+        <Text style={styles.goalDate}>Completed {formatDate(goal.completedAt)}</Text>
       </View>
     </Pressable>
   );
 }
 
-function createGoalWithProgress(goal, transactions) {
-  const goalTransactions = transactions.filter((transaction) => transaction.goalID === goal.id);
+function EmptyMilestoneCard() {
+  return (
+    <View style={styles.emptyCard}>
+      <View style={styles.emptyIconCircle}>
+        <FontAwesome5 name="flag-checkered" size={18} color="#00a63e" />
+      </View>
 
-  const totalPaid = CalculateTotalPaid(goalTransactions);
-  const amountLeft = CalculateAmountLeft(goal.target, totalPaid);
-  const percentage = CalculatePercentage(goal.target, totalPaid);
-  const completionDate = goal.completedAt ?? getLatestTransactionDate(goalTransactions) ?? goal.dueDate;
+      <Text style={styles.emptyTitle}>No completed goals yet</Text>
 
-  return {
-    ...goal,
-    totalPaid,
-    amountLeft,
-    percentage,
-    completionDate,
-    isCompleted: goal.completed === true || percentage >= 100,
-  };
-}
-
-function getLatestTransactionDate(transactions) {
-  if (transactions.length === 0) {
-    return null;
-  }
-
-  const latestTransaction = transactions.reduce((latest, transaction) => {
-    return getDateTime(transaction.date) > getDateTime(latest.date) ? transaction : latest;
-  });
-
-  return latestTransaction.date;
-}
-
-function getDateTime(value) {
-  if (!value) {
-    return 0;
-  }
-
-  if (value.seconds) {
-    return value.seconds * 1000;
-  }
-
-  if (value.toDate) {
-    return value.toDate().getTime();
-  }
-
-  const date = new Date(value);
-  return isNaN(date.getTime()) ? 0 : date.getTime();
+      <Text style={styles.emptyText}>When a goal reaches 100%, it will be shown here.</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -189,122 +191,97 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
 
-  topDivider: {
-    height: 1,
-    backgroundColor: "#e5e7eb",
-    marginBottom: 20,
-  },
-
-  smallHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
-  },
-
-  smallHeaderTitle: {
-    fontSize: 18,
-    fontWeight: "500",
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: "700",
     color: "#111111",
+    marginBottom: 24,
   },
 
-  viewAllText: {
-    fontSize: 13,
+  summaryCard: {
+    backgroundColor: "#07983d",
+    borderRadius: 22,
+    padding: 24,
+    marginBottom: 24,
+  },
+
+  summaryLabel: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.85)",
+    marginBottom: 6,
+  },
+
+  summaryAmount: {
+    fontSize: 40,
     fontWeight: "500",
-    color: "#2563eb",
+    color: "#ffffff",
+    marginBottom: 12,
+  },
+
+  summarySubText: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.85)",
   },
 
   sectionHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    justifyContent: "space-between",
+    marginBottom: 22,
   },
 
-  pageTitle: {
-    fontSize: 24,
+  sectionTitle: {
+    fontSize: 22,
     fontWeight: "700",
     color: "#111111",
   },
 
-  completedBadge: {
-    backgroundColor: "#dcfce7",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-
-  completedBadgeText: {
-    color: "#16a34a",
-    fontSize: 13,
-    fontWeight: "500",
-  },
-
   goalList: {
-    gap: 16,
+    gap: 14,
   },
 
-  milestoneCard: {
-    minHeight: 100,
+  goalCard: {
+    minHeight: 88,
     borderWidth: 1,
-    borderColor: "#86efac",
-    backgroundColor: "#f7fdf9",
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    borderColor: "#e5e7eb",
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     flexDirection: "row",
     alignItems: "center",
-    gap: 18,
+    gap: 14,
   },
 
-  checkCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 999,
+  iconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: "#dcfce7",
-    borderWidth: 1,
-    borderColor: "#86efac",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  cardTextBlock: {
+  goalTextContainer: {
     flex: 1,
   },
 
   goalTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "500",
     color: "#111111",
     marginBottom: 6,
   },
 
-  savedText: {
+  goalAmount: {
     fontSize: 14,
     color: "#475569",
-    marginBottom: 8,
+    marginBottom: 4,
   },
 
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-
-  dateText: {
-    fontSize: 12,
+  goalDate: {
+    fontSize: 13,
     color: "#64748b",
-  },
-
-  centerState: {
-    alignItems: "center",
-    paddingVertical: 48,
-    gap: 10,
-  },
-
-  centerStateText: {
-    color: "#64748b",
-    fontSize: 14,
   },
 
   emptyCard: {
@@ -312,18 +289,18 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
     borderRadius: 14,
     backgroundColor: "#ffffff",
-    padding: 22,
+    padding: 24,
     alignItems: "center",
   },
 
   emptyIconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 999,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: "#dcfce7",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
 
   emptyTitle: {
@@ -334,9 +311,9 @@ const styles = StyleSheet.create({
   },
 
   emptyText: {
-    textAlign: "center",
     fontSize: 14,
     color: "#64748b",
+    textAlign: "center",
     lineHeight: 20,
   },
 });
