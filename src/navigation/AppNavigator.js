@@ -6,6 +6,10 @@ import { SignUpPage } from "../screens/SignUpPage";
 
 const Stack = createNativeStackNavigator();
 
+// AppNavigator — handles the top-level routing,
+// specifically keeping LoginPage outside the tabs (you don't want a bottom tab bar on the login screen)
+// and GoalDetailsPage as a drill-down screen that slides over the tabs.
+
 export function AppNavigator() {
   return (
     <Stack.Navigator initialRouteName="LoginPage" screenOptions={{ headerShown: false }}>
