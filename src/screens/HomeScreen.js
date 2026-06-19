@@ -7,7 +7,7 @@ import { GetGoals, SetGoal } from "../services/GoalUtil";
 import { GetTransactions } from "../services/TransactionUtil";
 import { CalculateTotalPaid, CalculateAmountLeft, CalculatePercentage } from "../utils/calculator";
 import { formatMoney } from "../utils/format";
-import { LogoutButton } from "../components/layout/LogOutContainer";
+import { LogoutButton } from "../components/modals/LogOutContainer";
 
 export function HomeScreen({ route }) {
   // Gets the logged-in user id from navigation params.

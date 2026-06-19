@@ -13,7 +13,7 @@ import {
 } from "../utils/calculator";
 import { formatMoney, formatDate } from "../utils/format";
 import { DeleteGoal } from "../services/GoalUtil";
-import { LogoutButton } from "../components/layout/LogOutContainer";
+import { LogoutButton } from "../components/modals/LogOutContainer";
 
 export function GoalDetailsScreen({ route }) {
   // Gives access to navigation functions like goBack.

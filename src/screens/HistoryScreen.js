@@ -6,7 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { GetTransactions, DeleteTransaction } from "../services/TransactionUtil";
 import { formatDate, formatTime, formatMoney } from "../utils/format";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { LogoutButton } from "../components/layout/LogOutContainer";
+import { LogoutButton } from "../components/modals/LogOutContainer";
 import { CalculateTotalPaid } from "../utils/calculator";
 
 export function HistoryScreen({ route }) {
