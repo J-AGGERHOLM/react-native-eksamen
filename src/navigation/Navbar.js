@@ -2,9 +2,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { StyleSheet } from "react-native";
 
-import { HomeScreen } from "../../screens/HomeScreen";
-import { HistoryScreen } from "../../screens/HistoryScreen";
-import { MileStoneScreen } from "../../screens/MileStoneScreen";
+import { HomeScreen } from "../screens/HomeScreen";
+import { HistoryScreen } from "../screens/HistoryScreen";
+import { MileStoneScreen } from "../screens/MileStoneScreen";
 const Tab = createBottomTabNavigator();
 
 export function NavBar({ route }) {
