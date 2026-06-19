@@ -148,22 +148,22 @@ export function HomeScreen({ route }) {
 }
 
 function totalSavings(goals) {
-  // Sums total paid and total target across all goals.
-  return goals.reduce(
-    (totals, goal) => {
-      // Adds this goal's calculated paid amount.
-      totals.totalPaid += Number(goal.totalPaid);
-      // Adds this goal's target amount.
-      totals.totalAmount += Number(goal.target);
+  // Initial values used when there are no goals.
+  const totals = {
+    totalPaid: 0,
+    totalAmount: 0,
+  };
 
-      return totals;
-    },
-    // Initial values used when there are no goals.
-    {
-      totalPaid: 0,
-      totalAmount: 0,
-    },
-  );
+  // Sums total paid and total target across all goals.
+  for (const goal of goals) {
+    // Adds this goal's calculated paid amount.
+    totals.totalPaid += Number(goal.totalPaid);
+
+    // Adds this goal's target amount.
+    totals.totalAmount += Number(goal.target);
+  }
+
+  return totals;
 }
 
 // Top view of page

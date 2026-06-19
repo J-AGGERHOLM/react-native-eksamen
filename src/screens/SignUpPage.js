@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
 import { useState } from "react";
-import { LogInContainer } from "../components/layout/LogInContainer";
+import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 import { auth } from "../../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -62,7 +62,7 @@ export function SignUpPage() {
   }
 
   return (
-    <LogInContainer>
+    <ScreenContainer>
       <View style={styles.headingBlock}>
         <Text style={styles.heading}>Create account</Text>
         <Text style={styles.subheading}>Sign up to start tracking your savings goals</Text>
@@ -132,7 +132,7 @@ export function SignUpPage() {
           <Text style={styles.loginLink}>Sign in</Text>
         </Pressable>
       </View>
-    </LogInContainer>
+    </ScreenContainer>
   );
 }
 

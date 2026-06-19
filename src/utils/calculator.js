@@ -69,8 +69,11 @@ function calculateCompletionDate(weeksNeeded) {
 
 // Calculates the total paid amount from transactions.
 export function CalculateTotalPaid(transactions = []) {
-  // Sums the amount from each transaction. if transactions is empty, returns 0.
-  return transactions.reduce((total, transaction) => {
-    return total + Number(transaction.amount);
-  }, 0);
+  let total = 0;
+
+  for (const transaction of transactions) {
+    total += Number(transaction.amount);
+  }
+
+  return total;
 }

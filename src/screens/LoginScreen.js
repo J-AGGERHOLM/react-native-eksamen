@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, TextInput, Alert } from "react-native";
 import { useState } from "react";
-import { LogInContainer } from "../components/layout/LogInContainer";
+import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useNavigation } from "@react-navigation/native";
 /* use initialized auth from firebase config*/
 import { auth } from "../../firebaseConfig";
@@ -69,7 +69,7 @@ export function LoginPage() {
   }
 
   return (
-    <LogInContainer>
+    <ScreenContainer>
       {/* Logo + brand */}
       <View style={styles.logoRow}>
         <Text style={styles.brandName}>Vaultly</Text>
@@ -140,7 +140,7 @@ export function LoginPage() {
           </Text>
         </Pressable>
       </View>
-    </LogInContainer>
+    </ScreenContainer>
   );
 }
 

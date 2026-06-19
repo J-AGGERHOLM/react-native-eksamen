@@ -7,6 +7,7 @@ import { GetTransactions, DeleteTransaction } from "../services/TransactionUtil"
 import { formatDate, formatTime, formatMoney } from "../utils/format";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { LogoutButton } from "../components/layout/LogOutContainer";
+import { CalculateTotalPaid } from "../utils/calculator";
 
 export function HistoryScreen({ route }) {
   // Gets the logged-in user id from navigation params.
@@ -51,9 +52,7 @@ export function HistoryScreen({ route }) {
   )
 
   // Calculates the total amount contributed across all transactions.
-  const totalContributed = transactions.reduce((total, transaction) => {
-    return total + Number(transaction.amount);
-  }, 0);
+  const totalContributed = CalculateTotalPaid(transactions);
 
   // Groups transactions by their formatted date.
   const groupedTransactions = groupTransactionsByDate(transactions);
@@ -156,7 +155,9 @@ function TransactionCard({ transaction, goals, onDelete }) {
 
 function groupTransactionsByDate(transactions) {
   // Builds an object where each key is a formatted date.
-  return transactions.reduce((groups, transaction) => {
+  const groups = {};
+
+  for (const transaction of transactions) {
     // Formats the transaction date for grouping.
     const dateKey = formatDate(transaction.date);
 
@@ -167,9 +168,9 @@ function groupTransactionsByDate(transactions) {
 
     // Adds the transaction to its date group.
     groups[dateKey].push(transaction);
+  }
 
-    return groups;
-  }, {});
+  return groups;
 }
 
 const styles = StyleSheet.create({
