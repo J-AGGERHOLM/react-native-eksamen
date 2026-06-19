@@ -8,6 +8,7 @@ import { GetGoals, UpdateGoalCompletion } from "../services/GoalUtil";
 import { GetTransactions } from "../services/TransactionUtil";
 import { CalculateAmountLeft, CalculatePercentage, CalculateTotalPaid } from "../utils/calculator";
 import { formatDate, formatMoney } from "../utils/format";
+import { LogoutButton } from "../components/modals/LogOutContainer";
 
 export function MileStoneScreen({ route }) {
   // Gets the logged-in user's id from navigation params.
@@ -120,7 +121,10 @@ export function MileStoneScreen({ route }) {
   return (
     <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <Text style={styles.pageTitle}>Milestones</Text>
+        <View style={styles.topRow}>
+          <Text style={styles.pageTitle}>Milestones</Text>
+          <LogoutButton />
+        </View>
 
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Completed Goals</Text>
@@ -315,5 +319,18 @@ const styles = StyleSheet.create({
     color: "#64748b",
     textAlign: "center",
     lineHeight: 20,
+  },
+
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111111",
   },
 });
