@@ -1,4 +1,4 @@
-import * as ImagePicker from "expo-image-picker";
+ import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../../firebaseConfig";
 
@@ -33,16 +33,6 @@ export async function uploadGoalImage(uri) {
 
 // Opens the user's image library and returns the selected image uri.
 export async function pickImage() {
-    // Requests permission to access the user's image library.
-    const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    // Stops if the user does not grant image access.
-    if (!permissionResult.granted) {
-        alert("Permission to access images is required");
-        return null;
-    }
-
     // Opens the image library and allows the user to crop the image.
     const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
